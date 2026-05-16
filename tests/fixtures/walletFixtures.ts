@@ -1,22 +1,23 @@
 /**
- * walletFixtures - Root Level Web3 Browser Sandboxing Test Fixtures
+ * walletFixtures.ts - Root Level Web3 Browser Sandboxing Test Fixtures
  * @module walletFixtures
  * @description Establishes the foundational physical layer isolation bounds for the runner framework.
- * Programmatically injects the unzipped MetaMask extension binary into a persistent Chromium user directory profiles,
- * and initializes decoupled Page Object models across clean test lifecycle boundaries.
- * * Architectural Paradigms:
- * 1. Persistent State Retention: Seeds extension configurations (keys, networks) cleanly across specs.
- * 2. Automated Fixture Teardown: Safely closes downstream browser contexts to mitigate memory leakages.
- * 3. Atomic Dependency Injection: Decouples page lifecycle assignments away from spec body initializations.
+ * Programmatically injects the raw MetaMask extension binary block directly into persistent memory profiles.
+ * * Architectural Paradigms & CI/CD Resilience:
+ * 1. Ghost Popup Deflection: Intentionally removes blocking page event listeners to support pre-provisioned cache arrays.
+ * 2. Linux Sandbox Bypassing: Injects defensive runtime arguments (--no-sandbox, --disable-dev-shm-usage) 
+ * to prevent LevelDB memory corruption inside headless Ubuntu worker environments.
+ * 3. Reactive Resource Allocation: Lazily routes existing viewport frames to minimize CPU consumption during scaling.
  */
 
-import { test as base, type BrowserContext, type Page, chromium } from '@playwright/test';
-import { MetaMaskPage } from "../../pages/wallet/MetaMaskPage";
-import { DAppSwapPage } from '../../pages/dapp/DAppSwapPage';
-import { WalletConnectPage } from "../../pages/dapp/WalletConnectPage";
+import { test as base, chromium, type BrowserContext, type Page } from '@playwright/test';
+import path from 'path';
 import { CONFIG } from '../../config/config';
+import { MetaMaskPage } from '../../pages/wallet/MetaMaskPage';
+import { DAppSwapPage } from '../../pages/dapp/DAppSwapPage';
+import { WalletConnectPage } from '../../pages/dapp/WalletConnectPage';
 
-// Declare root structural properties allocated to the baseline wallet sandboxing setup
+// Declare structural boundaries for our DI container pipeline
 type WalletFixtures = {
     context: BrowserContext;
     page: Page;
@@ -25,62 +26,79 @@ type WalletFixtures = {
     connectPage: WalletConnectPage;
 };
 
-// Extend foundational Playwright test suites to map specialized EVM execution environments
 export const test = base.extend<WalletFixtures>({
+    
     /**
-     * context Fixture: Hooks persistent storage structures and injects raw Chrome extension components.
-     * Maps headless configurations natively based on upstream CI/CD matrix environments.
+     * Context DI Provider: Mounts the Chromium process with explicit extension flags
      */
-    context: async ({ }, use) => {
-        // Spin up isolated runtime profiles mapping directly to local user data cache bounds
-        const context = await chromium.launchPersistentContext(
-            CONFIG.METAMASK.USER_DATA_PATH,
-            {
-                headless: CONFIG.HEADLESS,
-                args: [
-                    `--disable-extensions-except=${CONFIG.METAMASK.EXTENSION_PATH}`,
-                    `--load-extension=${CONFIG.METAMASK.EXTENSION_PATH}`
-                ]
-            }
-        );
+    context: async ({}, use) => {
+        const METAMASK_PATH = CONFIG.METAMASK.EXTENSION_PATH;
+        const USER_DATA_PATH = CONFIG.METAMASK.USER_DATA_PATH;
 
-        // Pass control blocks back down to upstream operational threads
+        console.log('📦 [Wallet-Fixture] Mounting persistent browser context with targeted provider payload...');
+        
+        const context = await chromium.launchPersistentContext(USER_DATA_PATH, {
+            headless: false, // Mandatory FALSE: Chromium drops extension runtimes under true headless modes. (Handled via Xvfb)
+            viewport: { width: 1920, height: 1080 },
+            args: [
+                // Critical Extension Injection Vectors
+                `--disable-extensions-except=${METAMASK_PATH}`,
+                `--load-extension=${METAMASK_PATH}`,
+                '--start-maximized',
+                
+                // 🛡️ CI/CD Linux Hardening Arguments (Prevents 120s timeout hanging)
+                '--no-sandbox',                      // Disables strict Linux UI process bounds
+                '--disable-setuid-sandbox',          // Deflects kernel privilege escalations
+                '--disable-dev-shm-usage',           // Maps Chromium to physical disk rather than limited /dev/shm memory
+                '--disable-gpu',                     // Mitigates hardware acceleration crashes on virtualized instances
+                '--disable-background-timer-throttling',
+                '--disable-backgrounding-occluded-windows',
+                '--disable-renderer-backgrounding'
+            ]
+        });
+
+        // 🌟 Idempotent State Strategy:
+        // We explicitly DO NOT wait for `context.waitForEvent('page')` here!
+        // If the runner is utilizing a pre-provisioned user_data profile, MetaMask will NOT spawn an onboarding tab,
+        // and waiting for it will result in an infinite execution lock. We simply yield for background scripts.
+        console.log('⏳ [Wallet-Fixture] Yielding process thread to allow background extension scripts to boot natively...');
+        await context.waitForTimeout(3000); 
+
         await use(context);
 
-        // Automated Teardown: Safely execute context destruction to purge volatile memory parameters post-run
+        console.log('🏁 [Wallet-Fixture] Test block finalized. Liquidating physical persistent context lock...');
         await context.close();
     },
 
     /**
-     * page Fixture: Materializes explicit browser windows and routes context paths to the targeted gateway node.
+     * Page DI Provider: Allocates the core front-end execution canvas
      */
     page: async ({ context }, use) => {
-        const page = await context.newPage();
-        await page.goto(CONFIG.BASE_URL);
+        console.log('📄 [Wallet-Fixture] Allocating primary DApp viewport canvas...');
+        
+        // Retrieve existing ghost tabs spawned by the engine to prevent excessive RAM bloat
+        const pages = context.pages();
+        const page = pages.length > 0 ? pages[0] : await context.newPage();
+        
+        await page.goto(CONFIG.BASE_URL as string);
+        await page.bringToFront();
+        
         await use(page);
     },
 
     /**
-     * mmPage Fixture: Instantiates and maps decentralized operational tracking controllers for MetaMask.
+     * Page Object Model (POM) Injection Vectors
      */
     mmPage: async ({ page }, use) => {
         await use(new MetaMaskPage(page));
     },
-
-    /**
-     * swapPage Fixture: Instantiates and maps core exchange form operation controllers.
-     */
     swapPage: async ({ page }, use) => {
         await use(new DAppSwapPage(page));
     },
-
-    /**
-     * connectPage Fixture: Instantiates and maps vendor listing authorization controllers.
-     */
     connectPage: async ({ page }, use) => {
         await use(new WalletConnectPage(page));
     }
 });
 
-// Re-export standard expectation validation APIs cleanly
-export { expect } from '@playwright/test';
+// Re-export Playwright primitives to streamline spec implementations
+export { expect, chromium } from '@playwright/test';
