@@ -24,11 +24,10 @@ type WalletFixtures = {
 export const test = base.extend<WalletFixtures>({
     
     context: async ({}, use) => {
-        // 🌟 绝杀补丁 1：强制转换绝对路径！粉碎 Linux Chromium 相对路径挂起 BUG
         const METAMASK_PATH = path.resolve(CONFIG.METAMASK.EXTENSION_PATH || 'extension/metamask');
         const USER_DATA_PATH = path.resolve(CONFIG.METAMASK.USER_DATA_PATH || 'user_data');
 
-        // 🛡️ 物理碎锁：强制清理上次未正常关闭遗留的进程锁
+        // 清理上次残留的锁文件，防止浏览器启动失败
         const lock1 = path.join(USER_DATA_PATH, 'SingletonLock');
         const lock2 = path.join(USER_DATA_PATH, 'SingletonCookie');
         try { if (fs.existsSync(lock1)) fs.unlinkSync(lock1); } catch (e) {}
@@ -37,35 +36,37 @@ export const test = base.extend<WalletFixtures>({
         console.log('📦 [Wallet-Fixture] Mounting persistent browser context with targeted provider payload...');
         
         const context = await chromium.launchPersistentContext(USER_DATA_PATH, {
-            headless: false, 
+            headless: true, // ✅ 修复：GitHub 必须无头模式
             viewport: { width: 1920, height: 1080 },
-            locale: 'en-US', // 🌟 绝杀补丁 2：严格对齐 env-setup 的环境属性
+            locale: 'en-US',
             args: [
                 `--disable-extensions-except=${METAMASK_PATH}`,
                 `--load-extension=${METAMASK_PATH}`,
-                `--lang=en-US`,
-                `--accept-lang=en,en-US`,
+                '--lang=en-US',
+                '--accept-lang=en,en-US',
                 '--start-maximized',
                 
-                // 🛡️ Linux CI 防斩杀参数（与 env-setup 保持 100% 一致，移除多余的 disable-gpu 避免状态冲突）
-                '--no-sandbox',                      
-                '--disable-setuid-sandbox',          
-                '--disable-dev-shm-usage',           
+                // ✅ GitHub Actions 必备稳定参数
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--disable-software-rasterizer',
 
-                // 🛡️ 屏蔽 Chrome 崩溃恢复弹窗
+                // 屏蔽弹窗 & 崩溃恢复
                 '--disable-crash-reporter',
                 '--hide-crash-restore-bubble',
                 '--disable-infobars',
-                '--no-default-browser-check'
+                '--no-default-browser-check',
             ]
         });
 
-        console.log('⏳ [Wallet-Fixture] Yielding process thread to allow background extension scripts to boot natively...');
-        await context.waitForTimeout(3000); 
+        console.log('⏳ [Wallet-Fixture] Waiting for MetaMask to load...');
+        await context.waitForTimeout(5000); // ✅ 加长等待，确保钱包启动完成
 
         await use(context);
 
-        console.log('🏁 [Wallet-Fixture] Test block finalized. Liquidating physical persistent context lock...');
+        console.log('🏁 [Wallet-Fixture] Closing context...');
         await context.close();
     },
 
@@ -85,4 +86,4 @@ export const test = base.extend<WalletFixtures>({
     connectPage: async ({ page }, use) => { await use(new WalletConnectPage(page)); }
 });
 
-export { expect, chromium } from '@playwright/test';
+export { expect } from '@playwright/test';
