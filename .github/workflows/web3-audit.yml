@@ -5,7 +5,7 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch: # 允许你在 GitHub 网页上手动点击运行按钮
+  workflow_dispatch:
 
 jobs:
   web3-e2e-audits:
@@ -20,35 +20,36 @@ jobs:
     - name: ⚙️ Setup Node.js Infrastructure
       uses: actions/setup-node@v4
       with:
-        node-version: 18 # 根据你的本地环境调整
+        node-version: 18
         cache: 'npm'
 
     - name: 📦 Install NPM Dependencies
       run: npm ci
 
     - name: 🎭 Install Playwright Browsers & OS Dependencies
-      # 必须加 --with-deps，安装 xvfb 和所有底层图形库
       run: npx playwright install --with-deps chromium
 
     - name: 🔑 Inject Cryptographic Secrets & Boot Sandbox Environment
-      # 🌟 绝杀一：使用 xvfb-run 虚拟出一块屏幕，强行开启 headed 模式跑开荒脚本！
-      run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx playwright test MetaMaskSetup.spec.ts --headed
+      # 🌟 修复点 1：精准匹配你项目里的真实文件名 tests/env-setup.spec.ts
+      run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx playwright test tests/env-setup.spec.ts --headed
       env:
-        # 这些变量需要等会儿在 GitHub Repo 的 Secrets 里配置
         WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
         MNEMONIC: ${{ secrets.MNEMONIC }}
         WALLET_PASSWORD: ${{ secrets.WALLET_PASSWORD }}
+        # 🌟 修复点 2：直接在流水线里注入 DApp 目标地址，消灭 undefined 警告
+        BASE_URL: "https://app.uniswap.org/"
 
     - name: 🚀 Execute High-Velocity Stress & Invariance Audits
-      # 🌟 绝杀二：环境落盘后，继续在虚拟屏幕中执行真正的业务并发对账用例
+      # 跑 tests/ 目录下的所有用例，并用 --grep-invert "@env" 过滤掉开荒脚本
       run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx playwright test tests/ --grep-invert "@env" --headed
       env:
         WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
         MNEMONIC: ${{ secrets.MNEMONIC }}
         WALLET_PASSWORD: ${{ secrets.WALLET_PASSWORD }}
+        BASE_URL: "https://app.uniswap.org/"
 
     - name: 📸 Archive Forensic Artifacts (Traces & Screenshots)
-      if: always() # 无论成功还是失败，都把日志和截图保存下来
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: playwright-forensic-reports
