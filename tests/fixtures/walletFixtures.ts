@@ -27,16 +27,16 @@ export const test = base.extend<WalletFixtures>({
         const METAMASK_PATH = path.resolve(CONFIG.METAMASK.EXTENSION_PATH || 'extension/metamask');
         const USER_DATA_PATH = path.resolve(CONFIG.METAMASK.USER_DATA_PATH || 'user_data');
 
-        // 清理上次残留的锁文件，防止浏览器启动失败
+        // 清理残留锁文件，防止启动失败
         const lock1 = path.join(USER_DATA_PATH, 'SingletonLock');
         const lock2 = path.join(USER_DATA_PATH, 'SingletonCookie');
         try { if (fs.existsSync(lock1)) fs.unlinkSync(lock1); } catch (e) {}
         try { if (fs.existsSync(lock2)) fs.unlinkSync(lock2); } catch (e) {}
 
-        console.log('📦 [Wallet-Fixture] Mounting persistent browser context with targeted provider payload...');
+        console.log('📦 [Wallet-Fixture] Mounting persistent browser context...');
         
         const context = await chromium.launchPersistentContext(USER_DATA_PATH, {
-            headless: true, // ✅ 修复：GitHub 必须无头模式
+            headless: true, // ✅ GitHub 必须开启无头模式
             viewport: { width: 1920, height: 1080 },
             locale: 'en-US',
             args: [
@@ -46,14 +46,14 @@ export const test = base.extend<WalletFixtures>({
                 '--accept-lang=en,en-US',
                 '--start-maximized',
                 
-                // ✅ GitHub Actions 必备稳定参数
+                // ✅ GitHub Linux 稳定参数
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
                 '--disable-gpu',
                 '--disable-software-rasterizer',
 
-                // 屏蔽弹窗 & 崩溃恢复
+                // 屏蔽崩溃弹窗
                 '--disable-crash-reporter',
                 '--hide-crash-restore-bubble',
                 '--disable-infobars',
@@ -62,7 +62,7 @@ export const test = base.extend<WalletFixtures>({
         });
 
         console.log('⏳ [Wallet-Fixture] Waiting for MetaMask to load...');
-        await context.waitForTimeout(5000); // ✅ 加长等待，确保钱包启动完成
+        await new Promise(resolve => setTimeout(resolve, 5000)); // ✅ 修复等待方法
 
         await use(context);
 
@@ -71,7 +71,7 @@ export const test = base.extend<WalletFixtures>({
     },
 
     page: async ({ context }, use) => {
-        console.log('📄 [Wallet-Fixture] Allocating primary DApp viewport canvas...');
+        console.log('📄 [Wallet-Fixture] Allocating primary DApp viewport...');
         const pages = context.pages();
         const page = pages.length > 0 ? pages[0] : await context.newPage();
         
