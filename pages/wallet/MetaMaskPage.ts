@@ -53,6 +53,28 @@ export class MetaMaskPage extends BasePage {
     private readonly priorityFeeInput = (handle: Page) => handle.getByTestId('priority-fee-input');
     private readonly saveGasButton = (handle: Page) => handle.getByRole('button', { name: 'Save' });
 
+    // =========================================================================
+    // 🎯 Declarative Locator Registries (Decoupled MetaMask DOM Targets)
+    // =========================================================================
+
+    // --- Multichain Permission Interception Form ---
+    protected readonly networkCardContainer = (handle: Page) => handle.locator('.multichain-connection-list-item, [data-testid="site-cell-connection-list-item"]');
+    protected readonly networkEditBtn = (handle: Page) => this.networkCardContainer(handle).filter({ hasText: 'Use your enabled networks' }).getByTestId('edit');
+    protected readonly selectAllToggle = (handle: Page) => handle.locator('label').filter({ hasText: 'Select all' });
+
+    // --- Target Network Identification (Sepolia Row) ---
+    protected readonly sepoliaRowItem = (handle: Page) => handle.locator('.multichain-network-list-item').filter({ has: handle.getByTestId('Sepolia') });
+    protected readonly sepoliaCheckbox = (handle: Page) => this.sepoliaRowItem(handle).locator('input[type="checkbox"]');
+    protected readonly networkUpdateBtn = (handle: Page) => handle.locator('button:has-text("Update"), [data-testid="update"]');
+
+    // --- Outbound Handshake Finalization Handlers (Fallback Array) ---
+    protected readonly handshakeSubmitSelectors = (handle: Page) => [
+        handle.getByTestId('page-container-footer-next'),
+        handle.locator('button:has-text("Connect")'),
+        handle.locator('button:has-text("Done")'),
+        handle.getByTestId('confirm-btn')
+    ];
+
     constructor(page: Page) {
         super(page);
     }
@@ -94,12 +116,82 @@ export class MetaMaskPage extends BasePage {
 
     /**
      * Confirms handshake authorization between the host application and provider.
-     * @param {Page} handle - Active extension popup context.
+     * @description Orchestrates granular multi-chain permission realignments on incoming popups.
+     * Employs structured defensive fallback iterations during finalization to guarantee 
+     * cross-version architectural compatibility with mutated MetaMask DOM rollouts.
+     * @param {Page} handle - The active, sandboxed extension popup context handle.
+     * @returns {Promise<void>} Resolves once peer channel handshake status consolidates at EVM level.
      */
-    async connectWallet(handle: Page) {
-        await this.confirmButton(handle).click({ force: true, timeout: 5000 });
-    }
+    async connectWallet(handle: Page): Promise<void> {
+        console.log('🔓 [MetaMask-Page] Active popup frame trapped. Realigning multichain threshold matrices...');
 
+        // Yield execution thread line to ensure React virtual layout components render completely
+        await handle.waitForLoadState('networkidle').catch(() => { });
+        await handle.waitForTimeout(1500);
+
+        try {
+            // --- Phase 1: Isolated Network Mutation Interception ---
+            const editBtn = this.networkEditBtn(handle).first();
+
+            if (await editBtn.isVisible({ timeout: 4000 })) {
+                await editBtn.click({ force: true });
+                console.log('📝 [Step-1] Target multi-instance collision bypassed. Entered network modifier array.');
+                await handle.waitForTimeout(800);
+
+                // --- Phase 2: Inverted Ledger Selection Cleanups ---
+                const selectAllLabel = this.selectAllToggle(handle).first();
+                await selectAllLabel.scrollIntoViewIfNeeded();
+                await selectAllLabel.click({ force: true });
+                console.log('🔄 [Step-2] Universal multi-chain inversion triggered. Active check states cleared.');
+                await handle.waitForTimeout(800);
+
+                // --- Phase 3: Cryptographic Target Pinning (Sepolia Injection) ---
+                console.log('🔍 [Step-3] Pinning targeted Sepolia node coordinates inside layout list...');
+                const targetCheckbox = this.sepoliaCheckbox(handle).first();
+
+                // Enforce rigid registration bounds to absorb asynchronous DOM append latency
+                await targetCheckbox.waitFor({ state: 'attached', timeout: 5000 });
+                await targetCheckbox.scrollIntoViewIfNeeded();
+                await targetCheckbox.click({ force: true });
+                console.log('🎯 [Step-3] Target checkbox successfully forced to checked state: Sepolia Network pinned.');
+                await handle.waitForTimeout(800);
+
+                // --- Phase 4: State Serialization Matrix Save ---
+                const updateBtn = this.networkUpdateBtn(handle).first();
+                await updateBtn.click({ force: true });
+                console.log('💾 [Step-4] Mutated layout parameters serialized. Transmitting state to extension DB...');
+                await handle.waitForTimeout(1200);
+            } else {
+                console.log('✨ Info: Multichain permission shield absent; network threshold pre-cached or configuration bypassed.');
+            }
+        } catch (err: any) {
+            console.error('❌ CRITICAL AUTOPROVISIONING FAILURE: Multi-chain interception pipeline collapsed:', err.message);
+            throw err;
+        }
+
+        // --- Phase 5: Downstream Handshake Finalization (Connect Bombardment) ---
+        console.log('🤝 [Step-5] Launching fallback handler matrix to dispatch transaction channel permission...');
+
+        let connected = false;
+        const potentialTriggers = this.handshakeSubmitSelectors(handle);
+
+        for (const selector of potentialTriggers) {
+            try {
+                if (await selector.isVisible({ timeout: 2000 })) {
+                    await selector.click({ force: true });
+                    connected = true;
+                    console.log(`🏆 [MetaMask-Page] Peer channel authorized! Handshake successfully established with Client DApp.`);
+                    break;
+                }
+            } catch (e) {
+                // Gracefully fall back to query the next candidate signature trigger inside the array matrix
+            }
+        }
+
+        if (!connected) {
+            throw new Error('❌ FATAL ARCHITECTURAL BLOCK: Handshake steps finalized but final connection buttons eluded standard selector capture loops.');
+        }
+    }
     /**
      * Mounts and establishes an explicit full-page MetaMask dashboard tab context.
      * @returns {Promise<Page>} The active full-page home dashboard context.
