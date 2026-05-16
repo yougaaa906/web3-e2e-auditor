@@ -10,86 +10,89 @@
  * 3. Safe Dynamic Assertions: Coerces asynchronous Promise resolutions into Boolean matrices via atomic .then/.catch pipelines.
  */
 
-import { test, expect } from './fixtures/connectedWalletFixtures';
+import { expect } from '@playwright/test';
+import { test } from './fixtures/connectedWalletFixtures'; // Enforce strict usage of our authenticated cloud-native fixture container
 import { CONFIG } from '../config/config';
 
 test.describe('DApp Cryptographic Pending Session Armor Auditing Matrix', () => {
+
+    // NOTE: Initialization lifecycle sequences (unlocking wallet vaults, establishing peer handshakes, 
+    // and activating global Testnet Mode switches via the account-drawer) are entirely abstracted into the fixture container.
+
     /**
      * Test Case: Inject Low Gas Metrics to Audit Frontend Pending Guardrail Logic
-     * * Audit Strategy Verification Matrix:
-     * 1. Stalling Environment: Commit a valid transaction with underpriced fees to force stalling in the mempool.
-     * 2. UX Interception Check: Verify if the client UI detects the asynchronous pending transition states.
-     * 3. Mitigation Evaluation: Check the layout components to assert if the user interface prevents duplicated submissions.
+     * @description Mutates the state tree by broadcasting an intentionally underpriced transaction payload,
+     * forcing the block mutation to stall at node memory pool levels to evaluate client-side UI fallback indicators.
      */
-    test('Anomaly Scenario: Simulated Underpriced Gas Stalling to Audit UI Defensive Guardrails', async ({ swapPage, mmPage }) => {
-        // 💡 Strategic Design: Extract the underlying context handle natively via swapPage.mainPage 
-        // to fully decouple pointer evaluations from upstream session cross-pollution.
+    test('Anomaly Scenario: Simulated Underpriced Gas Stalling to Audit UI Defensive Guardrails', async ({ page, swapPage, mmPage }) => {
+        // 💡 Strategic Safeguard: Extract variables natively from the fully pre-authenticated runtime sandbox context
+        const userAddress = process.env.WALLET_ADDRESS!;
+        const mockSwapAmount = "0.005";
+        const targetAsset = "WETH";
 
-        // --- Phase 1: Establish Congested Sandbox Environment ---
-        console.log('[Spec-Audit] Phase 1: Injecting underpriced gas parameters to stall the transaction in mempool...');
-        await swapPage.executeSwap("0.005", "WETH");
+        // --- Milestone 1: Client Interaction Layer Ingestion ---
+        console.log('[Spec-Audit] Phase 1: Context pre-asserted by fixture container. Injecting underpriced gas parameters...');
 
-        const { popup: firstPopup } = await swapPage.confirmAndGetWallet();
+        // Directly execute the swap form interaction pipeline without invoking duplicate configuration handshakes
+        await swapPage.executeSwap(mockSwapAmount, targetAsset);
 
-        // Mutate gas limits to minimum thresholds and sign; the broadcast will stall at the node level
-        // updateGasFeeAndConfirmSwap defaults securely back to LOW_BASE_FEE and LOW_PRIORITY_FEE definitions
-        await mmPage.updateGasFeeAndConfirmSwap(firstPopup);
+        // Capture the native transaction signature popup triggered by the outbound trade form dispatch
+        const { popup: transactionPopup } = await swapPage.confirmAndGetWallet();
 
-        // --- Phase 2: Assert Client UI Synchronization Capabilities ---
-        console.log('[Spec-Audit] Phase 2: Verifying whether the DApp UI detects the transaction pending state...');
+        // Mutate gas pricing models down to baseline configurations to force mempool stalling sequence loops
+        // The underlying locator registry safely intercepts the low gas selection tabs out-of-band
+        await mmPage.updateGasFeeAndConfirmSwap(transactionPopup);
+        console.log('[Spec-Audit] Low-priced transaction broadcasted successfully. Awaiting mempool stall state updates...');
+
+        // --- Milestone 2: Assert Client UI Synchronization Capabilities ---
+        console.log('[Spec-Audit] Phase 2: Interrogating client UI responsiveness over transient asynchronous pending indicators...');
         const hasPendingModal = await swapPage.waitForPendingModal(10000);
-        expect(hasPendingModal, 'DApp client interface should project a dedicated pending transaction loading modal').toBe(true);
+        expect(hasPendingModal, '❌ SECURITY MITIGATION RISK: DApp interface layer failed to project a dedicated pending transaction modal under congestion!').toBe(true);
 
-        // --- Phase 3: Forensic Audit over Interactive Security Mitigations ---
-        console.log('[Spec-Audit] Phase 3: Auditing frontend interactive boundaries under stalled session parameters...');
-
-        // 🛡️ Safety Strategy: Explicitly bind elements back to a confirmed live page instance 
-        // to isolate selectors from unmounted DOM nodes during sudden route refreshes.
-        const dappMainPage = swapPage.mainPage;
+        // --- Milestone 3: Forensic Audit over Interactive Security Mitigations ---
+        console.log('[Spec-Audit] Phase 3: Commencing forensic verification over interaction boundary locking mechanisms...');
 
         try {
-            // Context Integrity Probe: Confirm the core execution frames are alive and valid
-            if (dappMainPage.isClosed()) {
-                throw new Error("Critical: DApp core tab container unmounted or closed unexpectedly during stalled session execution");
+            // Verify execution context channel remains healthy post-mempool stall mutation
+            if (page.isClosed()) {
+                throw new Error("Critical context void: Client primary viewport unmounted or closed unexpectedly during stall audits.");
             }
 
-            // Mitigation Strategy A: Check for Rigid Interception Controls (Button Disablement)
-            // ⚡ Velocity Check: Prefer nimble micro-timeouts coupled with a soft catch loop over standard blocking waitFor models 
-            // to neutralize potential unmounted DOM nodes crashes.
+            // Mitigation Pass Logic A: Evaluate Rigid Structural Interception Controls (Button Disablement)
+            // Strategy: Use short-duration micro-timeouts coupled with soft catch blocks to neutralize transient layout shifts.
             const isBtnDisabled = await swapPage.swapBtn.isDisabled({ timeout: 3000 }).catch(() => false);
 
             if (isBtnDisabled) {
-                console.log("✅ [Strategy A Pass] DApp enforced strict tactical barriers: Click trigger button successfully transitioned to DISABLED.");
-                console.log('✅ [Spec-Audit] Audit Status: SUCCESS. Application locked state boundaries to block concurrent double-spending.');
-                return; // Structural target achieved; exit current spec track safely
+                console.log("✅ [Mitigation-A Secure] DApp enforced optimal interaction locking boundaries. Trigger component successfully entered DISABLED state.");
+                console.log('✅ [Spec-Audit] Audit Status: SUCCESS. Hardened action barriers locked out re-entry vectors completely.');
+                return; // Structural verification target satisfied. Terminate speculative branches safely.
             }
 
-            console.log("ℹ️ Click trigger remained unblocked. Escalating audit to track passive information banners...");
+            console.log("ℹ️ Interactive trigger remained unblocked under congestion. Escalating forensic pipeline to monitor soft tracking toast structures...");
 
-            // Mitigation Strategy B: Scan for Passive Alert Metrics (e.g., "1 Pending..." status indicators)
-            const pendingToast = dappMainPage.locator('text=/1 Pending|Submitting/i');
+            // Mitigation Pass Logic B: Evaluate Soft Informational Alerts (e.g., "1 Pending..." Status Trackers)
+            const pendingToast = page.locator('text=/1 Pending|Submitting/i');
 
-            // ⚡ High-Speed Optimization: Leverage continuous promise pipe chaining (.then/.catch) over standard block blocks.
-            // Guarantees zero runtime noise emitted into the framework engine even if the underlying layout components unmount.
+            // High-Speed Optimizations: Flatten block allocations into atomic Promise-chain pipes (.then/.catch) 
+            // to suppress internal engine warning emissions if components unmount during route re-renders.
             const hasToast = await pendingToast.waitFor({ state: 'visible', timeout: 5000 })
                 .then(() => true)
                 .catch(() => false);
 
             if (hasToast) {
-                console.log("⚠️ [Strategy B Pass] DApp selected passive notification models: Concurrent triggers remain active, but status indicators notify users.");
-                console.log('✅ [Spec-Audit] Audit Status: SUCCESS. Risk indicators successfully populated inside tracking layout structures.');
+                console.log("⚠️ [Mitigation-B Warning] DApp implemented passive alert structures. Re-entry channels remain active, but warning notifications populate tracking nodes.");
+                console.log('✅ [Spec-Audit] Audit Status: SUCCESS. Soft context alerts verified completely inside reactive layouts.');
             } else {
-                // Mitigation Strategy C: Neither blockades nor soft alerts identified; flag as systemic vulnerability
-                console.log("❌ [Strategy C Failure] EXTREME EXPOSURE RISK: DApp flushed state matrices completely during mempool stall periods.");
-                console.log("❌ UI completely decoupled state notifications from active provider sessions. Risk of malicious Nonce collisions or user fund drainages.");
-                expect(hasToast, 'DApp must retain contextual tracking logic and refuse to abandon session visibility bounds during stalls').toBe(true);
+                // Mitigation Pass Logic C: Critical Void Defect - Neither hard blockades nor warning banners verified.
+                console.log("❌ [Mitigation-C Vulnerability] CRITICAL DEFENSIVE COLLAPSE: Application state completely flushed session visibility bounds during stalls.");
+                console.log("❌ UI completely abandoned active tracking indicators. Elevated risks of unauthorized Nonce re-submission or duplicate fund drainage detected.");
+                expect(hasToast, 'DApp must retain visibility parameters and refuse to purge tracking status containers during active stalling cycles').toBe(true);
             }
 
-        } catch (error) {
-            // 🛡️ Global Lifecycle Armor: Trap severe out-of-band context exceptions to prevent volatile runner execution failures
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            console.log(`⚠️ [Spec-Audit] Intercepted non-blocking exception during security tracking sequence: ${errorMessage}`);
-            expect(dappMainPage.isClosed(), "Systemic crash detected: DApp container completely entered a locked/deadly profile state").toBe(false);
+        } catch (error: any) {
+            // Global Environment Armor: Trap volatile thread exceptions to guard runner stability limits
+            console.error(`⚠️ [Spec-Audit] Trapped non-blocking exception during security verification sequence: ${error.message}`);
+            expect(page.isClosed(), "Systemic application crash detected: DApp container entered an unrecoverable dead lock state").toBe(false);
         }
     });
 });

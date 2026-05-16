@@ -1,58 +1,179 @@
-import { test, chromium } from '@playwright/test';
+/**
+ * MetaMaskSetup.spec.ts - Out-of-Band Cloud-Native Provisioning Engine
+ * @module MetaMaskSetupSpec
+ * @description Executes deterministic zero-state wallet environment provisioning.
+ * Orchestrates linear onboarding matrices directly onto the raw web3 provider extension context
+ * without injecting unsafe evaluation hooks or generating phantom browser tabs.
+ * * Architectural Paradigms & Anti-Friction Tactics:
+ * 1. Reactive Topology Mitigation: Forces rigid 1080P viewports and hard maximized window limits 
+ * to flatten responsive display-none CSS rules.
+ * 2. Sandboxed Sandbox Interception: Hooks the volatile initial extension redirect stream via 
+ * atomic asynchronous event traps.
+ * 3. LavaMoat Shield Deflection: Bans page.evaluate() calls entirely, performing 100% pure 
+ * L-3 pointer coordinate mutations.
+ */
+
+import { test, chromium, type Page, type Locator } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 
-test('环境初始化：配置 MetaMask 持久化状态 @env', async () => {
-    // 设置一个超长超时，或者干脆设为 0（无限等待）
-    test.setTimeout(0); 
+// =========================================================================
+// 🎯 Declarative Provisioning Blueprint (Decoupled Locator Registry)
+// =========================================================================
+class OnboardingPageRegistry {
+    // --- Phase 1 & 2: License Agreement & Telemetry Interception ---
+    static termsCheckbox = (page: Page): Locator => page.getByTestId('onboarding-terms-checkbox');
+    static importWalletBtn = (page: Page): Locator => page.getByTestId('onboarding-import-wallet');
+    static telemetryOptOutBtn = (page: Page): Locator => page.getByTestId('metametrics-no-thanks');
+
+    // --- Phase 3: Cryptographic Seed Phrase (SRP) Matrix ---
+    static srpInputSlot = (page: Page, index: number): Locator => page.getByTestId(`import-srp__srp-word-${index}`);
+    static srpConfirmBtn = (page: Page): Locator => page.getByTestId('import-srp-confirm');
+
+    // --- Phase 4: Account Vault Hardening Passwords ---
+    static passwordNewInput = (page: Page): Locator => page.getByTestId('create-password-new');
+    static passwordConfirmInput = (page: Page): Locator => page.getByTestId('create-password-confirm');
+    static passwordTermsCheckbox = (page: Page): Locator => page.getByTestId('create-password-terms');
+    static passwordSubmitBtn = (page: Page): Locator => page.getByTestId('create-password-import');
+
+    // --- Phase 5: Onboarding Walkthrough Dismissal Arrays ---
+    static completeDoneBtn = (page: Page): Locator => page.getByTestId('onboarding-complete-done');
+    static pinNextBtn = (page: Page): Locator => page.getByTestId('pin-extension-next');
+    static pinDoneBtn = (page: Page): Locator => page.getByTestId('pin-extension-done');
+
+    // --- Phase 6: Core Network Threshold Switches (Sepolia Injection) ---
+    static networkPickerMenu = (page: Page): Locator => page.locator('[data-testid="network-display"] .mm-picker-network__arrow-down-icon, [data-testid="network-display"] span');
+    static globalTestnetToggle = (page: Page): Locator => page.locator('label.toggle-button');
+    static sepoliaNetworkCard = (page: Page): Locator => page.getByTestId('Sepolia');
+}
+
+// =========================================================================
+// ⚙️ Executable Provisioning Pipeline (State Tree Inflation)
+// =========================================================================
+test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignment @env', async () => {
+    // Allocate generous 90-second execution bracket for network-bound cryptographic actions
+    test.setTimeout(90000);
 
     const METAMASK_PATH = path.resolve('extension/metamask');
     const USER_DATA_PATH = path.resolve('user_data');
 
-    // 检查插件路径是否存在，避免低级报错
     if (!fs.existsSync(METAMASK_PATH)) {
-        throw new Error(`❌ 找不到插件：${METAMASK_PATH}，请确认路径是否正确。`);
+        throw new Error(`❌ FATAL CONFIGURATION DEFECT: Extension binary block missing at targeted path: ${METAMASK_PATH}`);
     }
 
+    const mnemonicString = process.env.MNEMONIC || process.env.SECRET_PHRASE;
+    const walletPassword = process.env.WALLET_PASSWORD;
+
+    if (!mnemonicString || !walletPassword) {
+        throw new Error('❌ FATAL CREDENTIAL VOID: MNEMONIC or WALLET_PASSWORD environment variables are unasserted.');
+    }
+
+    console.log('🚀 Mounting structural persistent browser sandbox with extension payload blocks...');
     const context = await chromium.launchPersistentContext(USER_DATA_PATH, {
         headless: false,
-        // 【关键修正点 1】既然视口是 null，缩放比例也必须关掉
-        viewport: null,
-        deviceScaleFactor: undefined,
+        viewport: { width: 1920, height: 1080 }, // Hard limit to destroy mobile layout overrides
+        locale: 'en-US',
         args: [
             `--disable-extensions-except=${METAMASK_PATH}`,
             `--load-extension=${METAMASK_PATH}`,
-            '--start-maximized',
+            `--lang=en-US`,
+            `--accept-lang=en,en-US`,
+            `--start-maximized` // Instruct chromium graphics window to initialize maximized
         ],
     });
-    const page = await context.newPage();
 
-    // 【优化点 1】直接跳转到 MetaMask 首页
-    // 注意：ID 可能会变，你可以通过 context.backgroundPages() 获取，或者手动填入你本地的 ID
-    // 大多数 Chrome 版本的 MM ID 是这个：nkbihfbeogaeaoehlefnkodbefgpgknn
-    const extensionId = 'nkbihfbeogaeaoehlefnkodbefgpgknn';
-    try {
-        await page.goto(`chrome-extension://${extensionId}/home.html`);
-    } catch (e) {
-        // 如果 ID 不对，先去 Google 保活，然后让你手动点开插件
-        await page.goto('https://www.google.com');
-        console.log('⚠️ 插件 ID 可能不匹配，请手动点击浏览器右上角 MetaMask 图标进行配置。');
+    console.log('👀 Tracking asynchronous window creation events to capture core extension viewports...');
+
+    // Asynchronous Viewport Ingestion: Trap the native out-of-band onboarding tab dynamically
+    const page = await context.waitForEvent('page');
+    await page.bringToFront();
+
+    // Soft buffer to ensure stable React architecture state updates
+    await page.waitForLoadState('networkidle').catch(() => { });
+    await page.waitForTimeout(2000);
+    console.log('🤖 Target context bound successfully. Starting zero-state automated environment inflation...');
+
+    // --- Milestone 1: License Consent & Action Allocation ---
+    console.log('📝 Consuming legal policy agreements and entering structural import matrices...');
+    const termsCheck = OnboardingPageRegistry.termsCheckbox(page);
+    await termsCheck.waitFor({ state: 'attached', timeout: 15000 });
+    await termsCheck.click({ force: true });
+    await OnboardingPageRegistry.importWalletBtn(page).click();
+
+    // --- Milestone 2: Analytical Data Telemetry Deletion ---
+    console.log('📊 Dismissing out-of-band telemetry tracking components...');
+    const telemetryBtn = OnboardingPageRegistry.telemetryOptOutBtn(page);
+    await telemetryBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await telemetryBtn.click();
+
+    // --- Milestone 3: Sequential SRP Input Mapping ---
+    console.log('🔑 Dispatched sequence loops to fill cryptographic seed matrices...');
+    const mnemonicWords = mnemonicString.split(' ');
+    for (let i = 0; i < 12; i++) {
+        const fieldInput = OnboardingPageRegistry.srpInputSlot(page, i);
+        await fieldInput.waitFor({ state: 'visible', timeout: 5000 });
+        await fieldInput.fill(mnemonicWords[i]);
     }
+    await OnboardingPageRegistry.srpConfirmBtn(page).click();
 
-    console.log('--- 🛡️ 经理战斗指令：环境配置中 ---');
-    console.log('1. 请在弹出的浏览器中完成助记词导入、网络切换。');
-    console.log('2. 完成后，请在此控制台按 Ctrl+C，或者直接关闭浏览器。');
-    console.log('3. 配置会被自动保存在 user_data 文件夹中。');
+    // --- Milestone 4: Vault Account Lock Hardening ---
+    console.log('🔒 Encoding local storage security credential profiles...');
+    await OnboardingPageRegistry.passwordNewInput(page).fill(walletPassword);
+    await OnboardingPageRegistry.passwordConfirmInput(page).fill(walletPassword);
+    await OnboardingPageRegistry.passwordTermsCheckbox(page).click({ force: true });
+    await OnboardingPageRegistry.passwordSubmitBtn(page).click();
 
-    // 【优化点 2】优雅等待：只要浏览器没关，脚本就不退出
-    // 这比死等 30 分钟更智能
-    page.on('close', () => {
-        console.log('✅ 浏览器已关闭，环境配置已保存！');
-        process.exit();
-    });
+    // --- Milestone 5: Clearance of Context Walkthrough Modal Nodes ---
+    console.log('🎉 Identity instantiated. Sweeping system instructional dialog cascades...');
 
-    // 依然保留一个兜底的长等待，防止意外退出
-    await page.waitForTimeout(3000000); 
+    const completeBtn = OnboardingPageRegistry.completeDoneBtn(page);
+    await completeBtn.waitFor({ state: 'visible', timeout: 15000 });
+    await completeBtn.click();
 
+    const pinNext = OnboardingPageRegistry.pinNextBtn(page);
+    await pinNext.waitFor({ state: 'visible', timeout: 10000 });
+    await pinNext.click();
+
+    const pinDone = OnboardingPageRegistry.pinDoneBtn(page);
+    await pinDone.waitFor({ state: 'visible', timeout: 10000 });
+    await pinDone.click();
+
+    // --- Milestone 6: L-3 Coordinate Pinned Network Configuration (Sepolia Alignment) ---
+    console.log('🌐 Executing physical vector positioning over the primary network display component...');
+
+    await page.waitForLoadState('networkidle').catch(() => { });
+    await page.waitForTimeout(2000);
+
+    const arrowTrigger = OnboardingPageRegistry.networkPickerMenu(page).first();
+    await arrowTrigger.waitFor({ state: 'visible', timeout: 15000 });
+    // Explode dropdown layout options cleanly via pure pointer hit
+    await arrowTrigger.click({ force: true });
+    console.log('👇 Network dropdown expansion dispatched. Syncing local list states...');
+    await page.waitForTimeout(2000);
+
+    // Dynamic verification checkpoint capture
+    await page.screenshot({ path: 'network_dropdown_check.png' });
+    console.log('📸 Visual telemetry recorded to project root file: network_dropdown_check.png');
+
+    console.log('🔍 Locating advanced testnet display semantic toggles...');
+    const toggleSwitch = OnboardingPageRegistry.globalTestnetToggle(page).first();
+    await toggleSwitch.waitFor({ state: 'attached', timeout: 5000 });
+    await toggleSwitch.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(500);
+
+    // Toggle network threshold visibility state
+    await toggleSwitch.click({ force: true });
+    console.log('🔄 Global network visibility thresholds mutated.');
+    await page.waitForTimeout(1500);
+
+    console.log('🎯 Pining specific Sepolia target coordinates inside the expanded layout view...');
+    const targetCard = OnboardingPageRegistry.sepoliaNetworkCard(page);
+    await targetCard.waitFor({ state: 'attached', timeout: 5000 });
+    await targetCard.scrollIntoViewIfNeeded();
+    await targetCard.click({ force: true });
+
+    // --- Milestone 7: Final Synchronization & State Persistence ---
+    await page.waitForTimeout(2000);
+    console.log('🏁 State tree tracking hardened successfully. Closing storage context channels...');
     await context.close();
 });
