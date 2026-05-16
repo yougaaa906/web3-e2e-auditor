@@ -5,13 +5,13 @@
  * Programmatically injects the raw MetaMask extension binary block directly into persistent memory profiles.
  * * Architectural Paradigms & CI/CD Resilience:
  * 1. Ghost Popup Deflection: Intentionally removes blocking page event listeners to support pre-provisioned cache arrays.
- * 2. Linux Sandbox Bypassing: Injects defensive runtime arguments (--no-sandbox, --disable-dev-shm-usage) 
- * to prevent LevelDB memory corruption inside headless Ubuntu worker environments.
- * 3. Reactive Resource Allocation: Lazily routes existing viewport frames to minimize CPU consumption during scaling.
+ * 2. Linux Sandbox Bypassing: Injects defensive runtime arguments (--no-sandbox, --disable-dev-shm-usage).
+ * 3. Singleton Lock Liquidation: Physically unlinks residual Chromium OS locks prior to boot to prevent deadlocks.
  */
 
 import { test as base, chromium, type BrowserContext, type Page } from '@playwright/test';
 import path from 'path';
+import fs from 'fs';
 import { CONFIG } from '../../config/config';
 import { MetaMaskPage } from '../../pages/wallet/MetaMaskPage';
 import { DAppSwapPage } from '../../pages/dapp/DAppSwapPage';
@@ -35,10 +35,16 @@ export const test = base.extend<WalletFixtures>({
         const METAMASK_PATH = CONFIG.METAMASK.EXTENSION_PATH;
         const USER_DATA_PATH = CONFIG.METAMASK.USER_DATA_PATH;
 
+        // 🛡️ Physical Lock Liquidation
+        const lock1 = path.join(USER_DATA_PATH, 'SingletonLock');
+        const lock2 = path.join(USER_DATA_PATH, 'SingletonCookie');
+        try { if (fs.existsSync(lock1)) fs.unlinkSync(lock1); } catch (e) {}
+        try { if (fs.existsSync(lock2)) fs.unlinkSync(lock2); } catch (e) {}
+
         console.log('📦 [Wallet-Fixture] Mounting persistent browser context with targeted provider payload...');
         
         const context = await chromium.launchPersistentContext(USER_DATA_PATH, {
-            headless: false, // Mandatory FALSE: Chromium drops extension runtimes under true headless modes. (Handled via Xvfb)
+            headless: false, // Mandatory FALSE: Chromium drops extension runtimes under true headless modes.
             viewport: { width: 1920, height: 1080 },
             args: [
                 // Critical Extension Injection Vectors
@@ -47,10 +53,17 @@ export const test = base.extend<WalletFixtures>({
                 '--start-maximized',
                 
                 // 🛡️ CI/CD Linux Hardening Arguments (Prevents 120s timeout hanging)
-                '--no-sandbox',                      // Disables strict Linux UI process bounds
-                '--disable-setuid-sandbox',          // Deflects kernel privilege escalations
-                '--disable-dev-shm-usage',           // Maps Chromium to physical disk rather than limited /dev/shm memory
-                '--disable-gpu',                     // Mitigates hardware acceleration crashes on virtualized instances
+                '--no-sandbox',                      
+                '--disable-setuid-sandbox',          
+                '--disable-dev-shm-usage',           
+                '--disable-gpu',                     
+
+                '--disable-crash-reporter',
+                '--hide-crash-restore-bubble',
+                '--disable-infobars',
+                '--no-default-browser-check',
+
+                // Background Resource & Thread Throttling Mitigations
                 '--disable-background-timer-throttling',
                 '--disable-backgrounding-occluded-windows',
                 '--disable-renderer-backgrounding'
@@ -58,9 +71,7 @@ export const test = base.extend<WalletFixtures>({
         });
 
         // 🌟 Idempotent State Strategy:
-        // We explicitly DO NOT wait for `context.waitForEvent('page')` here!
-        // If the runner is utilizing a pre-provisioned user_data profile, MetaMask will NOT spawn an onboarding tab,
-        // and waiting for it will result in an infinite execution lock. We simply yield for background scripts.
+        // We explicitly DO NOT wait for `context.waitForEvent('page')` here.
         console.log('⏳ [Wallet-Fixture] Yielding process thread to allow background extension scripts to boot natively...');
         await context.waitForTimeout(3000); 
 
