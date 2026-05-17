@@ -45,7 +45,7 @@ export default defineConfig({
 
   // 👉 全局浏览器启动参数（GitHub Actions 必备）
   use: {
-    headless: true, // 必须改成 true！GitHub 无界面
+    headless: false, // 必须改成 true！GitHub 无界面
     baseURL: process.env.BASE_URL || 'https://app.uniswap.org',
     launchOptions: {
       args: [
