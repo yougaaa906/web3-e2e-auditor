@@ -48,38 +48,38 @@ export class WalletConnectPage extends BasePage {
      * stale provider sessions across parallel execution threads.
      * @returns {Promise<Page>} The intercepted external extension page notification handle.
      */
-    async connectToMetaMask(): Promise<Page> {
+    /**
+     * Executes the baseline dApp connection handshake and captures the out-of-band wallet popup frame.
+     */
+    async connectToMetaMask(): Promise<Page | null> {
         console.log("🚀 Initiating wallet connection sequence...");
 
-        // 清理缓存并刷新
         await this.pageReload();
         
-        console.log("⏳ [CI/CD Mitigation] Awaiting heavy React SPA hydration on cloud worker...");
-        await this.page.waitForLoadState('load').catch(() => {});
-        // 给云端 CPU 足足 8 秒的喘息时间，等 React 把 DOM 树挂载完毕
-        await this.page.waitForTimeout(8000); 
-
-        // 🌟 战术核心 1：获取原生 Locator 对象
+        console.log("⏳ [CI/CD Mitigation] Awaiting heavy React SPA hydration. Giving Ubuntu worker 60 seconds...");
+        
         const targetBtn = this.connectBtn.first();
-        console.log("🔍 Scanning dynamic DOM for target Connect trigger...");
         
-        // 🌟 战术核心 2：绝对不要用 this.waitElemVisible！直接用原生原生 API 并给 45 秒！
-        await targetBtn.waitFor({ state: 'attached', timeout: 45000 });
+        // 🌟 战术 1：不瞎猜了！给它足足 60 秒，等到它把 Connect 按钮吐出来为止！
+        const isNeedConnect = await targetBtn.waitFor({ state: 'attached', timeout: 60000 })
+            .then(() => true)
+            .catch(() => false);
 
-        // 🌟 战术核心 3：绝对不要用 this.elemClick！直接用原生 click 并强开 force: true！
-        console.log("🎯 Target attached to layout tree! Executing forced physical click...");
-        // force: true 会无视 DOM 游离和动画，只要按钮挂在树上，直接从坐标层暴力点穿！
-        await targetBtn.click({ force: true, timeout: 45000 });
-        
+        if (!isNeedConnect) {
+            console.log("❌ [FATAL ERROR] 60 seconds passed and the Connect button NEVER appeared!");
+            // 🌟 战术 2：如果 60 秒都没找到按钮，立刻截图保留犯罪现场！这张图会被传到 GitHub 上
+            await this.page.screenshot({ path: 'fatal-error.png', fullPage: true });
+            throw new Error("UI Rendering Failure: DApp did not mount within 60 seconds.");
+        }
+
+        console.log("🎯 Target attached! Executing forced physical click...");
+        await targetBtn.click({ force: true });
         console.log("💡 Main connection trigger executed successfully");
 
-        // 给侧边栏菜单弹出的动画一点时间
-        await this.page.waitForTimeout(2000);
+        // 给侧边栏动画足够的缓冲时间
+        await this.page.waitForTimeout(4000); 
 
-        // 选择 MetaMask 选项并捕获弹窗
-        // 这里可以使用基类的 clickAndGetPopup，因为一旦侧边栏稳定，MetaMask 按钮就不会乱跑了
         const popup = await this.clickAndGetPopup(this.metaMaskOption, 'Select MetaMask option');
-
         console.log('✅ Successfully locked wallet extension notification context.');
         return popup;
     }
