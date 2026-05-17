@@ -27,8 +27,16 @@ jobs:
     - name: 🎭 Install Playwright Browsers & OS Dependencies
       run: npx playwright install --with-deps chromium
 
+    # 🌟 终极补丁 1：安装并启动 Linux 桌面环境的基础总线服务 (DBus)
+    - name: 🛡️ Boot Linux D-Bus & Virtual Hardware Services
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y dbus dbus-x11
+        sudo service dbus start
+
     - name: 🔑 Inject Cryptographic Secrets & Boot Sandbox Environment
-      run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx playwright test tests/env-setup.spec.ts --headed
+      # 🌟 终极补丁 2：将 DBUS 环境变量注入到虚拟屏幕中，让 Chromium 找到“假硬件”
+      run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" bash -c "export DBUS_SESSION_BUS_ADDRESS=$(dbus-daemon --session --fork --print-address) && npx playwright test tests/env-setup.spec.ts --headed"
       env:
         WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
         MNEMONIC: ${{ secrets.MNEMONIC }}
@@ -36,16 +44,18 @@ jobs:
         BASE_URL: "https://app.uniswap.org/"
 
     - name: 🧹 Purge Zombie Processes & LevelDB Lockfiles
-      
       run: |
         echo "🛡️ Purging persistent context locks..."
-        killall chrome || true
-        killall chromium || true
+        # 优化：使用 pkill -f 进行无差别物理斩杀，比 killall 更稳
+        pkill -f chrome || true
+        pkill -f chromium || true
+        pkill -f playwright || true
         rm -rf user_data/SingletonLock
         rm -rf user_data/SingletonCookie
 
     - name: 🚀 Execute High-Velocity Stress & Invariance Audits
-      run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx playwright test tests/ --grep-invert "@env" --headed
+      # 🌟 终极补丁 3：业务用例执行环节同样注入 DBUS 环境变量
+      run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" bash -c "export DBUS_SESSION_BUS_ADDRESS=$(dbus-daemon --session --fork --print-address) && npx playwright test tests/ --grep-invert '@env' --headed"
       env:
         WALLET_ADDRESS: ${{ secrets.WALLET_ADDRESS }}
         MNEMONIC: ${{ secrets.MNEMONIC }}
