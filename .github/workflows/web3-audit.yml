@@ -60,4 +60,5 @@ jobs:
         path: |
           playwright-report/
           test-results/
+          fatal-error.png   
         retention-days: 7
