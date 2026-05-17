@@ -36,7 +36,7 @@ export const test = base.extend<WalletFixtures>({
         console.log('📦 [Wallet-Fixture] Mounting persistent browser context...');
         
         const context = await chromium.launchPersistentContext(USER_DATA_PATH, {
-            headless: true, // ✅ GitHub 必须开启无头模式
+            headless: false, // ✅ GitHub 必须开启无头模式
             viewport: { width: 1920, height: 1080 },
             locale: 'en-US',
             args: [
