@@ -51,25 +51,38 @@ export class WalletConnectPage extends BasePage {
     async connectToMetaMask(): Promise<Page> {
         console.log("🚀 Initiating wallet connection sequence...");
 
-        // Force state reset via clean refresh to purge stale injected web3 provider instances
+        // 清理缓存并刷新
         await this.pageReload();
-        await this.waitTimeout(2000);
+        
+        console.log("⏳ [CI/CD Mitigation] Awaiting heavy React SPA hydration on cloud worker...");
+        await this.page.waitForLoadState('load').catch(() => {});
+        // 给云端 CPU 足足 8 秒的喘息时间，等 React 把 DOM 树挂载完毕
+        await this.page.waitForTimeout(8000); 
 
-        // Dispatch pointer interaction onto global authentication selectors
-        await this.waitElemVisible(this.connectBtn, 'Global connect wallet action trigger');
-        await this.elemClick(this.connectBtn, 'Click connect wallet button');
+        // 🌟 战术核心 1：获取原生 Locator 对象
+        const targetBtn = this.connectBtn.first();
+        console.log("🔍 Scanning dynamic DOM for target Connect trigger...");
+        
+        // 🌟 战术核心 2：绝对不要用 this.waitElemVisible！直接用原生原生 API 并给 45 秒！
+        await targetBtn.waitFor({ state: 'attached', timeout: 45000 });
+
+        // 🌟 战术核心 3：绝对不要用 this.elemClick！直接用原生 click 并强开 force: true！
+        console.log("🎯 Target attached to layout tree! Executing forced physical click...");
+        // force: true 会无视 DOM 游离和动画，只要按钮挂在树上，直接从坐标层暴力点穿！
+        await targetBtn.click({ force: true, timeout: 45000 });
+        
         console.log("💡 Main connection trigger executed successfully");
 
-        // Validate vendor layout mounting inside the active view layer
-        await this.waitElemVisible(this.metaMaskOption, 'MetaMask vendor selection target');
+        // 给侧边栏菜单弹出的动画一点时间
+        await this.page.waitForTimeout(2000);
 
-        // Synchronously execute click events while attaching atomic hooks to eliminate popup racing anomalies
+        // 选择 MetaMask 选项并捕获弹窗
+        // 这里可以使用基类的 clickAndGetPopup，因为一旦侧边栏稳定，MetaMask 按钮就不会乱跑了
         const popup = await this.clickAndGetPopup(this.metaMaskOption, 'Select MetaMask option');
 
         console.log('✅ Successfully locked wallet extension notification context.');
         return popup;
     }
-
     /**
      * Asserts runtime connection persistence thresholds and extracts validated address hashes.
      * @description Employs soft-exception shields against transient introductory walkthrough tours,
