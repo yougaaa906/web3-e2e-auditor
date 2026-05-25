@@ -85,7 +85,7 @@ export class MetaMaskPage extends BasePage {
      * @param {string} [password] - Decryption credentials passphrase (Defaults to process.env.WALLET_PASSWORD).
      */
     async unlockWallet(handle: Page, password?: string) {
-        console.log('🔓 Initiating provider decryption sequence...');
+        console.log('🔓 [Vault-Auth] Initiating provider decryption sequence...');
         const walletPassword = password || process.env.WALLET_PASSWORD || '';
 
         if (!walletPassword) {
@@ -104,12 +104,12 @@ export class MetaMaskPage extends BasePage {
                     await this.elemClick(this.unlockSubmitButton(handle), 'Click decryption submit button');
                 }
             } catch (e) {
-                console.log('💡 Info: Decryption submission handled via input hooks; submission button bypassed safely.');
+                console.log('💡 [Vault-Auth] Decryption submission handled via input hooks; submission button bypassed safely.');
             }
 
-            console.log('✅ Extension decryption complete; sandbox unlocked.');
+            console.log('✅ [Vault-Auth] Extension decryption complete; sandbox unlocked.');
         } catch (error) {
-            console.error('❌ Extension decryption failed:', error);
+            console.error('❌ [Vault-Auth] Extension decryption failed:', error);
             throw error;
         }
     }
@@ -123,7 +123,7 @@ export class MetaMaskPage extends BasePage {
      * @returns {Promise<void>} Resolves once peer channel handshake status consolidates at EVM level.
      */
     async connectWallet(handle: Page): Promise<void> {
-        console.log('🔓 [MetaMask-Page] Active popup frame trapped. Realigning multichain threshold matrices...');
+        console.log('🔓 [Handshake-Pipeline] Active popup frame trapped. Realigning multichain threshold matrices...');
 
         // Yield execution thread line to ensure React virtual layout components render completely
         await handle.waitForLoadState('networkidle').catch(() => { });
@@ -135,42 +135,42 @@ export class MetaMaskPage extends BasePage {
 
             if (await editBtn.isVisible({ timeout: 4000 })) {
                 await editBtn.click({ force: true });
-                console.log('📝 [Step-1] Target multi-instance collision bypassed. Entered network modifier array.');
+                console.log('📝 [Handshake-Step-1] Target multi-instance collision bypassed. Entered network modifier array.');
                 await handle.waitForTimeout(800);
 
                 // --- Phase 2: Inverted Ledger Selection Cleanups ---
                 const selectAllLabel = this.selectAllToggle(handle).first();
                 await selectAllLabel.scrollIntoViewIfNeeded();
                 await selectAllLabel.click({ force: true });
-                console.log('🔄 [Step-2] Universal multi-chain inversion triggered. Active check states cleared.');
+                console.log('🔄 [Handshake-Step-2] Universal multi-chain inversion triggered. Active check states cleared.');
                 await handle.waitForTimeout(800);
 
                 // --- Phase 3: Cryptographic Target Pinning (Sepolia Injection) ---
-                console.log('🔍 [Step-3] Pinning targeted Sepolia node coordinates inside layout list...');
+                console.log('🔍 [Handshake-Step-3] Pinning targeted Sepolia node coordinates inside layout list...');
                 const targetCheckbox = this.sepoliaCheckbox(handle).first();
 
                 // Enforce rigid registration bounds to absorb asynchronous DOM append latency
                 await targetCheckbox.waitFor({ state: 'attached', timeout: 5000 });
                 await targetCheckbox.scrollIntoViewIfNeeded();
                 await targetCheckbox.click({ force: true });
-                console.log('🎯 [Step-3] Target checkbox successfully forced to checked state: Sepolia Network pinned.');
+                console.log('🎯 [Handshake-Step-3] Target checkbox successfully forced to checked state: Sepolia Network pinned.');
                 await handle.waitForTimeout(800);
 
                 // --- Phase 4: State Serialization Matrix Save ---
                 const updateBtn = this.networkUpdateBtn(handle).first();
                 await updateBtn.click({ force: true });
-                console.log('💾 [Step-4] Mutated layout parameters serialized. Transmitting state to extension DB...');
+                console.log('💾 [Handshake-Step-4] Mutated layout parameters serialized. Transmitting state to extension DB...');
                 await handle.waitForTimeout(1200);
             } else {
-                console.log('✨ Info: Multichain permission shield absent; network threshold pre-cached or configuration bypassed.');
+                console.log('✨ [Handshake-Shield] Multichain permission shield absent; network threshold pre-cached or configuration bypassed.');
             }
         } catch (err: any) {
-            console.error('❌ CRITICAL AUTOPROVISIONING FAILURE: Multi-chain interception pipeline collapsed:', err.message);
+            console.error('❌ [Handshake-Error] CRITICAL AUTOPROVISIONING FAILURE: Multi-chain interception pipeline collapsed:', err.message);
             throw err;
         }
 
         // --- Phase 5: Downstream Handshake Finalization (Connect Bombardment) ---
-        console.log('🤝 [Step-5] Launching fallback handler matrix to dispatch transaction channel permission...');
+        console.log('🤝 [Handshake-Step-5] Launching fallback handler matrix to dispatch transaction channel permission...');
 
         let connected = false;
         const potentialTriggers = this.handshakeSubmitSelectors(handle);
@@ -180,7 +180,7 @@ export class MetaMaskPage extends BasePage {
                 if (await selector.isVisible({ timeout: 2000 })) {
                     await selector.click({ force: true });
                     connected = true;
-                    console.log(`🏆 [MetaMask-Page] Peer channel authorized! Handshake successfully established with Client DApp.`);
+                    console.log(`🏆 [Handshake-Success] Peer channel authorized! Handshake successfully established with Client DApp.`);
                     break;
                 }
             } catch (e) {
@@ -192,6 +192,7 @@ export class MetaMaskPage extends BasePage {
             throw new Error('❌ FATAL ARCHITECTURAL BLOCK: Handshake steps finalized but final connection buttons eluded standard selector capture loops.');
         }
     }
+
     /**
      * Mounts and establishes an explicit full-page MetaMask dashboard tab context.
      * @returns {Promise<Page>} The active full-page home dashboard context.
@@ -216,9 +217,8 @@ export class MetaMaskPage extends BasePage {
      * @returns {Promise<{ originWalletBalance: string, sendAmount: string, gasPrice: string }>} Initial transaction metrics.
      */
     async initiateSwap(handle: Page) {
-        console.log('⏳ Awaiting transaction simulation parameters to compile inside provider UI...');
+        console.log('⏳ [Simulation-Telemetry] Awaiting transaction parameters to compile inside provider UI...');
 
-        // Leverage raw native driver expectations to eliminate logging noise
         await this.sendAmountPill(handle).waitFor({ state: 'visible', timeout: 30000 });
         await this.receiveAssetPill(handle).waitFor({ state: 'visible', timeout: 30000 });
         await this.confirmSwapButton(handle).waitFor({ state: 'visible', timeout: 30000 });
@@ -226,18 +226,17 @@ export class MetaMaskPage extends BasePage {
         const sendAmount = await this.sendAmountPill(handle).innerText();
         const gasPrice = await this.nativeCurrencyGasFee(handle).innerText();
 
-        // Soft-Armor Check: Vault parameters occasionally omit base balance properties inside rapid signature views
         let originWalletBalance = '';
         try {
             originWalletBalance = await this.walletBalanceDisplay(handle).innerText();
         } catch (e) {
-            console.log('⚠️ Current active balance inaccessible inside standard signature panels');
+            console.log('⚠️ [Simulation-Telemetry] Current active balance inaccessible inside standard signature panels');
             originWalletBalance = 'N/A';
         }
 
-        console.log(`💰 Baseline Balance: ${originWalletBalance}`);
-        console.log(`📤 Outbound Payload Amount: ${sendAmount}`);
-        console.log(`⛽ Network Gas Premium: ${gasPrice}`);
+        console.log(`💰 [Simulation-Telemetry] Baseline Balance: ${originWalletBalance}`);
+        console.log(`📤 [Simulation-Telemetry] Outbound Payload Amount: ${sendAmount}`);
+        console.log(`⛽ [Simulation-Telemetry] Network Gas Premium: ${gasPrice}`);
 
         return { originWalletBalance, sendAmount, gasPrice };
     }
@@ -247,39 +246,32 @@ export class MetaMaskPage extends BasePage {
      * @param {Page} handle - Target extension window handle.
      */
     async confirmSwap(handle: Page) {
-        console.log('🔄 Positioning pointers over final signature components...');
-
+        console.log('🔄 [Signature-Lock] Positioning pointers over final signature components...');
         let targetPage = handle;
 
-        // Defensive Scanning: Evaluate if context unmounted prematurely; re-acquire if active
         if (!handle || handle.isClosed()) {
-            console.log('⚠️ Signature handle destroyed. Attempting context reconstruction loops...');
+            console.log('⚠️ [Signature-Lock] Signature handle destroyed. Attempting context reconstruction loops...');
             const pages = handle.context().pages();
             const walletPage = pages.find(p => p.url().includes('chrome-extension://') && p.url().includes('confirm-transaction'));
 
             if (walletPage) {
                 targetPage = walletPage;
-                console.log('✅ Successfully re-acquired provider context hooks');
+                console.log('✅ [Signature-Lock] Successfully re-acquired provider context hooks');
             } else {
                 throw new Error('❌ Critical: Provider signature context destroyed; recovery array exhausted.');
             }
         }
 
         try {
-            // Force Dispatch Click: Bypasses transparent overlay blockades or front-end element intercept locks
             await this.confirmSwapButton(targetPage).click({ force: true, timeout: 10000 });
-
-            // Structural Anticipation: Await explicit unmounting events before the test driver reports failure
             await targetPage.waitForEvent('close', { timeout: 3000 }).catch(() => { });
-
-            console.log('✅ Signature click dispatched successfully; transaction broadcasted.');
+            console.log('✅ [Signature-Lock] Signature click dispatched successfully; transaction broadcasted.');
         } catch (e) {
             const errorMessage = e instanceof Error ? e.message : String(e);
-            // Intercept Target Closed False Failures: Rapid popup panel self-destruction registers as runtime failures
             if (errorMessage.includes('Target closed') || errorMessage.includes('Session closed')) {
-                console.log('💡 Info: Provider window successfully completed self-destruction routines.');
+                console.log('💡 [Signature-Lock] Provider window successfully completed self-destruction routines.');
             } else {
-                console.error('❌ Critical failure dispatched upon final confirmation click:', e);
+                console.error('❌ [Signature-Lock] Critical failure dispatched upon final confirmation click:', e);
                 throw e;
             }
         }
@@ -292,18 +284,17 @@ export class MetaMaskPage extends BasePage {
      * Handles transient window resuscitations, blind-signing speed optimizations, and error interceptions.
      */
     async initiateAndConfirmSwap(handle: Page) {
-        console.log('⏳ Executing high-resilience signature pipeline combo (Armor Edition)...');
+        console.log('⏳ [Pipeline-Combo] Executing high-resilience signature pipeline combo (Armor Edition)...');
         let targetPage = handle;
 
         // ==========================================
         // 🛡️ Armor Layer 1: Popup Window Resuscitator
         // ==========================================
         if (!handle || handle.isClosed()) {
-            console.log('⚠️ Active panel context unmounted. Launching reconstructor tracking loops...');
+            console.log('⚠️ [Pipeline-Combo] Active panel context unmounted. Launching reconstructor tracking loops...');
             let walletPage: Page | undefined;
             const context = this.page.context();
 
-            // Execute 20 iterations (10s scheduling budget) at 500ms step-bounds
             for (let i = 0; i < 20; i++) {
                 walletPage = context.pages().find(p => {
                     const url = p.url();
@@ -313,7 +304,7 @@ export class MetaMaskPage extends BasePage {
 
                 if (walletPage) {
                     targetPage = walletPage;
-                    console.log(`✅ Recovery loop index ${i + 1}: Intercepted active recreated popup context context.`);
+                    console.log(`✅ [Pipeline-Combo] Recovery loop index ${i + 1}: Intercepted active recreated popup context.`);
                     break;
                 }
                 await this.page.waitForTimeout(500);
@@ -327,15 +318,13 @@ export class MetaMaskPage extends BasePage {
         // ==========================================
         // ⚡ Armor Layer 2: Speed Optimization (Blind Sign Probe)
         // ==========================================
-        console.log('🔍 Locating signature dispatch components quickly...');
+        console.log('🔍 [Pipeline-Combo] Locating signature dispatch components quickly...');
         await this.confirmSwapButton(targetPage).waitFor({ state: 'visible', timeout: 15000 });
 
         let sendAmount = 'N/A';
         let gasPrice = 'N/A';
         let originWalletBalance = 'N/A';
 
-        // Blind-signing Optimization: Use reactive .isVisible() probes instead of blocking layout expectations.
-        // If data fails parsing extraction, drop gracefully to preserve execution speed.
         try {
             if (await this.sendAmountPill(targetPage).isVisible()) {
                 sendAmount = await this.sendAmountPill(targetPage).innerText();
@@ -347,14 +336,13 @@ export class MetaMaskPage extends BasePage {
                 originWalletBalance = await this.walletBalanceDisplay(targetPage).innerText();
             }
         } catch (e) {
-            console.log('💡 Info: Asset parameters extraction bypassed to mitigate transaction payload expiration risks.');
+            console.log('💡 [Pipeline-Combo] Asset parameters extraction bypassed to mitigate transaction payload expiration risks.');
         }
 
-        console.log(`💰 Baseline Balance: ${originWalletBalance}`);
-        console.log(`📤 Outbound Payload Amount: ${sendAmount}`);
-        console.log(`⛽ Network Gas Premium: ${gasPrice}`);
-
-        console.log('🔍 Executing critical velocity signature clicks...');
+        console.log(`💰 [Pipeline-Combo] Baseline Balance: ${originWalletBalance}`);
+        console.log(`📤 [Pipeline-Combo] Outbound Payload Amount: ${sendAmount}`);
+        console.log(`⛽ [Pipeline-Combo] Network Gas Premium: ${gasPrice}`);
+        console.log('🔍 [Pipeline-Combo] Executing critical velocity signature clicks...');
 
         // ==========================================
         // 👊 Armor Layer 3: Forced Dispatches & False Failure Traps
@@ -362,14 +350,13 @@ export class MetaMaskPage extends BasePage {
         try {
             await this.confirmSwapButton(targetPage).click({ force: true, timeout: 5000 });
             await targetPage.waitForEvent('close', { timeout: 3000 }).catch(() => { });
-            console.log('✅ Signature click dispatched successfully; transaction broadcasted.');
-
+            console.log('✅ [Pipeline-Combo] Signature click dispatched successfully; transaction broadcasted.');
         } catch (e) {
             const errorMessage = e instanceof Error ? e.message : String(e);
             if (errorMessage.includes('Target closed') || errorMessage.includes('Session closed')) {
-                console.log('✅ Info: Provider window completed standard clean self-destruction loops.');
+                console.log('✅ [Pipeline-Combo] Provider window completed standard clean self-destruction loops.');
             } else {
-                console.error('❌ Critical failure dispatched upon global transaction sign:', e);
+                console.error('❌ [Pipeline-Combo] Critical failure dispatched upon global transaction sign:', e);
                 throw e;
             }
         }
@@ -382,7 +369,7 @@ export class MetaMaskPage extends BasePage {
      * @note Cryptographic constraints require Priority Fees to be committed BEFORE Base Fees to dodge valuation rule errors.
      */
     async updateGasFee(handle: Page, options?: { baseFee?: string; priorityFee?: string }) {
-        console.log('⛽ Modifying execution context gas parameters...');
+        console.log('⛽ [Gas-Orchestration] Modifying execution context gas parameters...');
 
         const baseFeeValue = options?.baseFee || CONFIG.GAS.LOW_BASE_FEE;
         const priorityFeeValue = options?.priorityFee || CONFIG.GAS.LOW_PRIORITY_FEE;
@@ -395,7 +382,6 @@ export class MetaMaskPage extends BasePage {
             await this.elemClick(this.advancedGasButton(handle), 'Enter manual fee configuration panels');
 
             // ⚠️ Mandatory Ordering Constraints: Priority Fee properties must be cleared and populated BEFORE Base Fees.
-            // MetaMask UI validators dynamically evaluate Base Fee minimum bounds directly against Priority Fees.
             await this.waitElemVisible(this.priorityFeeInput(handle), 'Priority fee (miner tip) input node');
             await this.elemClear(this.priorityFeeInput(handle), 'Wipe placeholder tip value');
             await this.elemFill(this.priorityFeeInput(handle), priorityFeeValue, 'Inject underpriced priority tip properties');
@@ -405,11 +391,11 @@ export class MetaMaskPage extends BasePage {
             await this.elemFill(this.baseFeeInput(handle), baseFeeValue, 'Inject underpriced network base parameters');
 
             await this.elemClick(this.saveGasButton(handle), 'Commit custom gas modifications');
-            console.log('✅ Fee properties saved and updated successfully inside wallet.');
+            console.log('✅ [Gas-Orchestration] Fee properties saved and updated successfully inside wallet.');
 
             return this;
         } catch (error) {
-            console.error('❌ Failed to override transaction gas parameters matrix:', error);
+            console.error('❌ [Gas-Orchestration] Failed to override transaction gas parameters matrix:', error);
             throw error;
         }
     }
@@ -419,36 +405,84 @@ export class MetaMaskPage extends BasePage {
      * Resolves via block explorer external redirection parameters to safeguard data fidelity against brittle front-end DOM states.
      */
     async getLatestTransactionHash(handle: Page): Promise<string> {
-        console.log('🔍 Initializing hash query protocols across local transaction logs...');
+        console.log('⏳ [Front-Attack] Synchronizing unsealed MetaMask active view states...');
 
         try {
-            await this.elemClick(this.activityTabButton(handle), 'Switch focus parameters to Activity ledger tab');
+            /**
+             * Architectural Guardrail 1: Await core network and DOM synchronization.
+             * Since this page is invoked programmatically POST-transaction broadcast, the React frontend 
+             * experiences a brief hydration lag while fetching backend state logs from the Service Worker.
+             * Enforcing 'networkidle' ensures local state ledger alignment before driving downstream UI events.
+             */
+            await handle.waitForLoadState('networkidle', { timeout: 10000 })
+                .catch(() => console.log('⚠️ [Network-Defense] Network not fully idle within window thresholds; forcing continuation pipeline.'));
 
-            const firstTransaction = this.firstTransactionItem(handle);
-            await firstTransaction.waitFor({ state: 'visible', timeout: 10000 });
-
-            await firstTransaction.click({ timeout: 5000 });
-
-            const newPage = await this.clickAndGetPopup(this.blockExplorerLink(handle), 'Trigger block explorer popup redirection redirection');
-
-            const fullUrl = newPage.url();
-            console.log(`🌍 Intercepted third-party explorer context coordinates: ${fullUrl}`);
-
-            // Parse valid 66-character hexadecimal string hashes matching transaction regex parameters
-            const txHashMatch = fullUrl.match(/0x[a-fA-F0-9]{64}/);
-
-            if (!txHashMatch) {
-                throw new Error(`❌ Failed to parse cryptographic hash string structure from target path link: ${fullUrl}`);
+            /**
+             * Architectural Guardrail 2: Defensive interception for probability-triggered security modals.
+             * Evaluates whether the MetaMask 'Protect your funds' security/educational overlay is obstructing the layout viewport.
+             * If visible, dispatches an omni-channel pointer override event to prevent layout intersection blockages.
+             */
+            const gotItButton = handle.getByRole('button', { name: /^got it$/i }).first();
+            if (await gotItButton.isVisible({ timeout: 1500 }).catch(() => false)) {
+                console.log('🛡️ [MetaMask-Guard] Intercepted native security overlay. Dispatching dynamic click bypass...');
+                await gotItButton.click({ force: true });
+                console.log('✅ [MetaMask-Guard] Overlay dismissed safely. Pipeline execution loop restored.');
             }
 
-            const txHash = txHashMatch[0];
-            console.log(`✅ Cryptographic tx hash extracted cleanly: ${txHash}`);
+            // 1. Pivot to Activity Stream Tab View
+            const activityTab = handle.locator('[data-testid="home__activity-tab"]').or(handle.locator('text=Activity')).or(handle.locator('text=活动'));
+            await activityTab.first().waitFor({ state: 'visible', timeout: 5000 });
+            await activityTab.first().click({ force: true });
 
-            await newPage.close();
-            return txHash;
+            // 2. Expand Primary Ledger Row Card Context
+            const firstTxItem = handle.locator('[data-testid="activity-list-item"]').first()
+                .or(handle.locator('.activity-list-item').first());
+            await firstTxItem.waitFor({ state: 'visible', timeout: 5000 });
+            await firstTxItem.click({ force: true, position: { x: 40, y: 15 } });
+            console.log('🔓 [Front-Attack] Drawer row expanded.');
 
-        } catch (error) {
-            console.error('❌ Failed to reconcile transaction hash log blocks:', error);
+            /**
+             * Architectural Guardrail 3: State-Driven DOM Content Convergence Verification.
+             * Enforces absolute DOM lifecycle rendering checks prior to intercepting high-volatility 
+             * block explorer hash strings. Evades race conditions between UI re-rendering and click handlers.
+             */
+            await handle.waitForLoadState('domcontentloaded');
+
+            // 3. Pin Target Non-HREF Anchor Button Instance
+            const explorerButton = handle.locator('text=View on block explorer').first();
+
+            /**
+             * Pure State Wait Bounds: Relies on visibility constraints to maximize throughput.
+             * The 30s timeout behaves strictly as an upper bound defense window for blockchain node settlement; 
+             * Playwright triggers instant execution progression the exact millisecond the element arrives in a paintable state.
+             */
+            await explorerButton.waitFor({ state: 'visible', timeout: 30000 });
+            console.log('🎯 [Front-Attack] Locked target: View on block explorer button.');
+
+            // 4. Capture Inbound Navigation Targets via Core Event Loop Intercepts
+            console.log('⚡ [Front-Attack] Spawning browser context event trap...');
+            const browserContext = handle.context();
+
+            const [etherscanPage] = await Promise.all([
+                browserContext.waitForEvent('page', { timeout: 20000 }),
+                explorerButton.click({ force: true })
+            ]);
+
+            // 5. Instantly Mine Volatile URL Address Assets and Execute Forced Context Disposal
+            const rawUrl = etherscanPage.url();
+            console.log(`🌍 [Front-Attack] Captured raw URL address on first flight: ${rawUrl}`);
+            await etherscanPage.close().catch(() => { });
+
+            // 6. Decode Cryptographic Payload 66-character Strings via Regex
+            const hashMatch = rawUrl.match(/tx\/(0x[a-fA-F0-9]{64})/);
+            if (!hashMatch || !hashMatch[1]) {
+                throw new Error(`❌ Regulatory static analysis failed to parse cryptographic payload from browser URL: ${rawUrl}`);
+            }
+
+            return hashMatch[1];
+
+        } catch (error: any) {
+            console.error('❌ [Front-Attack-Error] CRITICAL ENGINE EXCEPTION IN FRONT-ATTACK FLOW:', error.message);
             throw error;
         }
     }
@@ -458,14 +492,14 @@ export class MetaMaskPage extends BasePage {
      * Deployed specifically to stall items in the mempool during pending security audits.
      */
     async updateGasFeeAndConfirmSwap(handle: Page) {
-        console.log('⏳ Dispatching micro-gas transaction execution combo sequence...');
+        console.log('⏳ [Pipeline-Combo-Gas] Dispatching micro-gas transaction execution combo sequence...');
         let targetPage = handle;
 
         // ==========================================
         // 🛡️ Armor Layer 1: Popup Window Resuscitator
         // ==========================================
         if (!handle || handle.isClosed()) {
-            console.log('⚠️ Active panel context unmounted. Launching reconstructor tracking loops...');
+            console.log('⚠️ [Pipeline-Combo-Gas] Active panel context unmounted. Launching reconstructor tracking loops...');
             let walletPage: Page | undefined;
             const context = this.page.context();
 
@@ -478,7 +512,7 @@ export class MetaMaskPage extends BasePage {
 
                 if (walletPage) {
                     targetPage = walletPage;
-                    console.log(`✅ Recovery loop index ${i + 1}: Intercepted active recreated popup context context.`);
+                    console.log(`✅ [Pipeline-Combo-Gas] Recovery loop index ${i + 1}: Intercepted active recreated popup context.`);
                     break;
                 }
                 await this.page.waitForTimeout(500);
@@ -490,9 +524,9 @@ export class MetaMaskPage extends BasePage {
         }
 
         // ==========================================
-        // ⚡ Armor Layer 2: Blind Sign Speed Capture
+        // ⚡ Armor Layer 2: Speed Optimization (Blind Sign Speed Capture)
         // ==========================================
-        console.log('🔍 Locating signature dispatch components quickly...');
+        console.log('🔍 [Pipeline-Combo-Gas] Locating signature dispatch components quickly...');
         await this.confirmSwapButton(targetPage).waitFor({ state: 'visible', timeout: 15000 });
 
         let sendAmount = 'N/A';
@@ -510,12 +544,12 @@ export class MetaMaskPage extends BasePage {
                 originWalletBalance = await this.walletBalanceDisplay(targetPage).innerText();
             }
         } catch (e) {
-            console.log('💡 Info: Asset parameters extraction bypassed to mitigate transaction payload expiration risks.');
+            console.log('💡 [Pipeline-Combo-Gas] Asset parameters extraction bypassed to mitigate transaction payload expiration risks.');
         }
 
-        console.log(`💰 Baseline Balance: ${originWalletBalance}`);
-        console.log(`📤 Outbound Payload Amount: ${sendAmount}`);
-        console.log(`⛽ Network Gas Premium: ${gasPrice}`);
+        console.log(`💰 [Pipeline-Combo-Gas] Baseline Balance: ${originWalletBalance}`);
+        console.log(`📤 [Pipeline-Combo-Gas] Outbound Payload Amount: ${sendAmount}`);
+        console.log(`⛽ [Pipeline-Combo-Gas] Network Gas Premium: ${gasPrice}`);
 
         // ==========================================
         // ⛽ Injection Layer: Mutate Gas Thresholds Into Stall Limits
@@ -528,14 +562,13 @@ export class MetaMaskPage extends BasePage {
         try {
             await this.confirmSwapButton(targetPage).click({ force: true, timeout: 5000 });
             await targetPage.waitForEvent('close', { timeout: 3000 }).catch(() => { });
-            console.log('✅ Underpriced transaction sequence successfully pushed into mempool.');
-
+            console.log('✅ [Pipeline-Combo-Gas] Underpriced transaction sequence successfully pushed into mempool.');
         } catch (e) {
             const errorMessage = e instanceof Error ? e.message : String(e);
             if (errorMessage.includes('Target closed') || errorMessage.includes('Session closed')) {
-                console.log('✅ Info: Provider window completed standard clean self-destruction loops.');
+                console.log('✅ [Pipeline-Combo-Gas] Provider window completed standard clean self-destruction loops.');
             } else {
-                console.error('❌ Critical failure dispatched upon customized underpriced gas sign:', e);
+                console.error('❌ [Pipeline-Combo-Gas] Critical failure dispatched upon customized underpriced gas sign:', e);
                 throw e;
             }
         }

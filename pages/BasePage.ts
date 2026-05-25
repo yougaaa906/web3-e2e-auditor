@@ -52,7 +52,7 @@ export class BasePage {
 
     /**
      * Programmatically triggers reactive 'input' and 'change' events across elements.
-     * * 🛡️ Strategic Design: Overcomes strict client-side state hooks management (e.g., React Virtual DOM).
+     * 🛡️ Strategic Design: Overcomes strict client-side state hooks management (e.g., React Virtual DOM).
      * Standard native driver string allocations often fail to invoke state propagation hooks without explicit event bubbling dispatches.
      * @param {Locator} locator - Target element pointer mapping selector.
      * @param {string} [stepName] - Functional process descriptor tracking label strings.
@@ -90,7 +90,7 @@ export class BasePage {
 
     /**
      * Executes interaction vectors and concurrently intercepts out-of-band popup contexts.
-     * * 🛡️ Strategic Design: Wraps click interactions and event listeners into an atomic Promise.all structure
+     * 🛡️ Strategic Design: Wraps click interactions and event listeners into an atomic Promise.all structure
      * to fully insulate pipelines against catastrophic cross-context asynchronous racing conditions.
      * @param {Locator} clickLocator - Element trigger expected to launch popup instances.
      * @param {string} [stepName] - Functional process descriptor tracking label strings.
@@ -117,8 +117,8 @@ export class BasePage {
 
     /**
      * Proactively forces the instantiation and foreground focus of the MetaMask wallet dashboard screen.
-     * * 🛡️ Strategic Design: Opens extensions natively via structural IDs instead of relying on brittle DApp event prompts.
-     * * ⚠️ Critical Optimization: Uses 'load' hooks instead of 'networkidle'. Wallet applications process permanent JSON-RPC
+     * 🛡️ Strategic Design: Opens extensions natively via structural IDs instead of relying on brittle DApp event prompts.
+     * ⚠️ Critical Optimization: Uses 'load' hooks instead of 'networkidle'. Wallet applications process permanent JSON-RPC
      * polling pipelines in background threads. Awaiting network idling guarantees spec-blocking timeout errors.
      * @returns {Promise<Page>} The re-focused full-screen wallet extension view handle.
      */
@@ -128,14 +128,44 @@ export class BasePage {
         await test.step(`[Wallet] Mount Full-page Provider Dashboard Instance`, async () => {
             const context = this.page.context();
 
-            // Speculatively reuse an existing instance before spinning up novel instances
+            // 1. Context Cache Reclamation: Reuse home instance if previously mounted
             walletPage = context.pages().find(p => p.url().includes('home.html'));
 
             if (!walletPage) {
-                walletPage = await context.newPage();
-                await walletPage.goto(`chrome-extension://${CONFIG.METAMASK.EXTENSION_ID}/home.html`);
+                console.log(`📡 [Telemetry-ID] Querying runtime layers for MetaMask unique identifier...`);
+                let realExtensionId = '';
 
-                // Intercept execution threads instantly post load events to avoid loop blockage via RPC data polling loops
+                // 2. Primary Heuristic: Scan active context page history for matching schemas
+                const walletPageWithId = context.pages().find(p => p.url().includes('chrome-extension://'));
+                if (walletPageWithId) {
+                    const match = walletPageWithId.url().match(/chrome-extension:\/\/([^/]+)/);
+                    if (match) realExtensionId = match[1];
+                }
+
+                // 3. Secondary Deflective Layer: Scan long-lived Chrome extension memory background pages
+                if (!realExtensionId) {
+                    const bgPages = context.backgroundPages();
+                    const bgPageWithId = bgPages.find(p => p.url().includes('chrome-extension://'));
+                    if (bgPageWithId) {
+                        const match = bgPageWithId.url().match(/chrome-extension:\/\/([^/]+)/);
+                        if (match) realExtensionId = match[1];
+                    }
+                }
+
+                // 4. Invariant Fallback Framework: Apply hardened fallback runtime identifier bound
+                if (!realExtensionId) {
+                    realExtensionId = 'nenmcdijiofhajlobjjcfcidgaflhmof';
+                }
+
+                console.log(`🎯 [Telemetry-ID] Resolved active target identifier bounds: ${realExtensionId}`);
+
+                // 5. Initialize isolated secondary execution tab
+                walletPage = await context.newPage();
+                const targetExtensionUrl = `chrome-extension://${realExtensionId}/home.html`;
+                console.log(`🚀 [Route-Lock] Transitioning context path coordinates directly to: ${targetExtensionUrl}`);
+
+                // 6. Navigate directly via validated path schema; bypass lifecycle sandbox blockages
+                await walletPage.goto(targetExtensionUrl);
                 await walletPage.waitForLoadState('load');
             }
 
@@ -203,7 +233,7 @@ export class BasePage {
 
     /**
      * Establishes adaptive polling loops to track element operational enablement states.
-     * * 🛡️ Strategic Design: Avoids brittle rigid driver wait configurations. 
+     * 🛡️ Strategic Design: Avoids brittle rigid driver wait configurations. 
      * Handles front-end aggregate data rendering lag seamlessly without blowing up pipeline run states.
      * @param {Locator} locator - Targeted tracking node element.
      * @param {number} [timeout] - Upper scheduling threshold barriers allocated to the loop parameters.

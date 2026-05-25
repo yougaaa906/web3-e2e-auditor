@@ -20,7 +20,7 @@ export class WalletConnectPage extends BasePage {
     // =========================================================================
 
     // --- Authentication Handshake Targets ---
-    protected readonly connectBtn: Locator = this.page.getByRole('button', { name: /connect|连接/i, exact: false });
+    protected readonly connectBtn: Locator = this.page.getByRole('button', { name: /connect/i, exact: false });
     protected readonly metaMaskOption: Locator = this.page.locator('div').filter({ hasText: /^MetaMask$/ }).last();
     protected readonly skipBtn: Locator = this.page.getByRole('button', { name: 'Skip' });
 
@@ -29,7 +29,7 @@ export class WalletConnectPage extends BasePage {
     protected readonly walletAddressText: Locator = this.web3StatusConnected.locator('text=/0x[a-fA-F0-9]{4,}/');
     protected readonly fallbackAddressText: Locator = this.web3StatusConnected.locator('span, div').filter({ hasText: '0x' });
 
-    // --- Container-Scoped Reactive Sidebar Gateways (Jerry's Testnet Matrix) ---
+    // --- Container-Scoped Reactive Sidebar Gateways (Testnet Parameter Matrix) ---
     protected readonly accountDrawerContainer: Locator = this.page.getByTestId('account-drawer');
     protected readonly walletSettingsBtn: Locator = this.accountDrawerContainer.getByTestId('wallet-settings');
     protected readonly testnetToggleBtn: Locator = this.accountDrawerContainer.getByTestId('testnets-toggle');
@@ -48,41 +48,28 @@ export class WalletConnectPage extends BasePage {
      * stale provider sessions across parallel execution threads.
      * @returns {Promise<Page>} The intercepted external extension page notification handle.
      */
-    /**
-     * Executes the baseline dApp connection handshake and captures the out-of-band wallet popup frame.
-     */
-    async connectToMetaMask(): Promise<Page | null> {
-        console.log("🚀 Initiating wallet connection sequence...");
+    async connectToMetaMask(): Promise<Page> {
+        console.log("🚀 [Handshake-DApp] Initiating wallet connection sequence...");
 
+        // Force state reset via clean refresh to purge stale injected web3 provider instances
         await this.pageReload();
-        
-        console.log("⏳ [CI/CD Mitigation] Awaiting heavy React SPA hydration. Giving Ubuntu worker 60 seconds...");
-        
-        const targetBtn = this.connectBtn.first();
-        
-        // 🌟 战术 1：不瞎猜了！给它足足 60 秒，等到它把 Connect 按钮吐出来为止！
-        const isNeedConnect = await targetBtn.waitFor({ state: 'attached', timeout: 60000 })
-            .then(() => true)
-            .catch(() => false);
+        await this.waitTimeout(2000);
 
-        if (!isNeedConnect) {
-            console.log("❌ [FATAL ERROR] 60 seconds passed and the Connect button NEVER appeared!");
-            // 🌟 战术 2：如果 60 秒都没找到按钮，立刻截图保留犯罪现场！这张图会被传到 GitHub 上
-            await this.page.screenshot({ path: 'fatal-error.png', fullPage: true });
-            throw new Error("UI Rendering Failure: DApp did not mount within 60 seconds.");
-        }
+        // Dispatch pointer interaction onto global authentication selectors
+        await this.waitElemVisible(this.connectBtn, 'Global connect wallet action trigger');
+        await this.elemClick(this.connectBtn, 'Click connect wallet button');
+        console.log("💡 [Handshake-DApp] Main connection trigger executed successfully");
 
-        console.log("🎯 Target attached! Executing forced physical click...");
-        await targetBtn.click({ force: true });
-        console.log("💡 Main connection trigger executed successfully");
+        // Validate vendor layout mounting inside the active view layer
+        await this.waitElemVisible(this.metaMaskOption, 'MetaMask vendor selection target');
 
-        // 给侧边栏动画足够的缓冲时间
-        await this.page.waitForTimeout(4000); 
-
+        // Synchronously execute click events while attaching atomic hooks to eliminate popup racing anomalies
         const popup = await this.clickAndGetPopup(this.metaMaskOption, 'Select MetaMask option');
-        console.log('✅ Successfully locked wallet extension notification context.');
+
+        console.log('✅ [Handshake-DApp] Successfully locked wallet extension notification context.');
         return popup;
     }
+
     /**
      * Asserts runtime connection persistence thresholds and extracts validated address hashes.
      * @description Employs soft-exception shields against transient introductory walkthrough tours,
@@ -92,7 +79,7 @@ export class WalletConnectPage extends BasePage {
     async verifyConnectionAndGetAddress(): Promise<string> {
         // Soft-Armor Contingency: Safely dismiss onboarding layout overlays if present
         await this.elemClick(this.skipBtn, 'Skip baseline introductory welcome overlay').catch(() => {
-            console.log('💡 Info: Onboarding modal absent; view bounds clear, continuing...');
+            console.log('💡 [Session-Validation] Onboarding modal absent; view bounds clear, continuing...');
         });
 
         // Block execution thread lines until the authenticated session state container mounts safely
@@ -105,41 +92,41 @@ export class WalletConnectPage extends BasePage {
             if (addr && addr.startsWith('0x')) {
                 break;
             }
-            console.log(`💡 Awaiting target account data mapping inside DOM layer, current: "${addr}"`);
+            console.log(`💡 [Session-Validation] Awaiting target account data mapping inside DOM layer, retry index: ${i + 1}`);
             await this.waitTimeout(500);
         }
 
-        console.log(`🌐 Session validated. Active cryptographic address link: ${addr}`);
+        console.log(`🌐 [Session-Validation] Session validated. Active cryptographic address link: ${addr}`);
         return addr;
     }
 
     /**
-     * Jerry's Adaptive Frontend Synchronization Pipeline
+     * Adaptive Frontend Synchronization Pipeline
      * @description Bypasses extension-level sandboxing blocks by mutating network visibility toggles 
      * directly through the native client interface. Uses strict component containment scopes 
      * to prevent strict mode dual-element collision anomalies on reactive sidebar drawers.
      * @returns {Promise<void>}
      */
     async enableDAppTestnetMode(): Promise<void> {
-        console.log('🛡️ [Jerry-绝杀流] Initializing in-context DApp network threshold realignment...');
+        console.log('🛡️ [Network-Provision] Initializing in-context DApp network threshold realignment...');
 
         try {
             // --- Phase 1: High-Precision Layer-3 Pointer Alignment ---
             // The connected account button layout encapsulates multiple overlapping SVG vector trees 
             // that tend to hijack pointer triggers. We enforce custom offset vectors paired with 
             // literal fallback anchor definitions to guarantee unbroken event bubbling.
-            await this.web3StatusConnected.waitFor({ state: 'visible', timeout: 6000 });
+            // await this.web3StatusConnected.waitFor({ state: 'visible', timeout: 6000 });
 
-            // Shift click target to the right sector (x:50, y:15) to hit the pure interactive boundary box
-            await this.web3StatusConnected.click({ force: true, position: { x: 50, y: 15 } });
-            console.log('🔓 [Step-1] Offset pointer dispatched; awaiting account drawer mount...');
-            await this.page.waitForTimeout(600);
+            // // Shift click target to the right sector (x:50, y:15) to hit the pure interactive boundary box
+            // await this.web3StatusConnected.click({ force: true, position: { x: 50, y: 15 } });
+            // console.log('🔓 [Network-Provision] Offset pointer dispatched; awaiting account drawer mount...');
+            await this.page.waitForTimeout(6000);
 
             // Conditional Fallback Sequence: Straight-line injection directly onto the inner literal address node
             const targetTextNode = this.fallbackAddressText.first();
             if (await targetTextNode.isVisible({ timeout: 1000 })) {
                 await targetTextNode.click({ force: true });
-                console.log('🔓 [Step-1.5] Textual locator contingency engaged; account drawer unsealed.');
+                console.log('🔓 [Network-Provision] Textual locator contingency engaged; account drawer unsealed.');
             }
             await this.page.waitForTimeout(1000);
 
@@ -150,7 +137,7 @@ export class WalletConnectPage extends BasePage {
             await targetSettingsBtn.waitFor({ state: 'attached', timeout: 4000 });
             await targetSettingsBtn.scrollIntoViewIfNeeded();
             await targetSettingsBtn.click({ force: true });
-            console.log('⚙️ [Step-2] Scoped layout lock secured; advanced parameters layer rendered.');
+            console.log('⚙️ [Network-Provision] Scoped layout lock secured; advanced parameters layer rendered.');
             await this.page.waitForTimeout(800);
 
             // --- Phase 3: Semantic Switch Mutation & Analytical Refresh ---
@@ -164,10 +151,10 @@ export class WalletConnectPage extends BasePage {
             const dataState = await targetToggle.getAttribute('data-state');
 
             if (isChecked === 'true' || dataState === 'checked') {
-                console.log('✅ [Step-3] State validation complete: Testnet mode pre-asserted as active. Bypassing mutation.');
+                console.log('✅ [Network-Provision] State validation complete: Testnet mode pre-asserted as active. Bypassing mutation.');
             } else {
                 await targetToggle.click({ force: true });
-                console.log('🚀 [Step-3] Semantic switch mutated! Global Testnet mode activated successfully.');
+                console.log('🚀 [Network-Provision] Semantic switch mutated! Global Testnet mode activated successfully.');
                 // Rigid buffer to guarantee remote RPC provider balance synchronization
                 await this.page.waitForTimeout(2000);
             }
@@ -175,10 +162,10 @@ export class WalletConnectPage extends BasePage {
             // --- Phase 4: Drawer Dismissal & Viewport Clearance ---
             // Collapse the drawer viewport to unblock core downstream interaction components
             await this.page.mouse.click(15, 15);
-            console.log('🏁 [Step-4] Sidebar collapsed safely; production-ready Sepolia sandbox context delivered.');
+            console.log('🏁 [Network-Provision] Sidebar collapsed safely; production-ready Sepolia sandbox context delivered.');
 
         } catch (err: any) {
-            console.error('❌ CRITICAL PIPELINE FAILURE: DApp testnet mode auto-provisioning collapsed:', err.message);
+            console.error('❌ [Network-Provision-Error] CRITICAL PIPELINE FAILURE: DApp testnet mode auto-provisioning collapsed:', err.message);
             throw err;
         }
     }

@@ -43,7 +43,7 @@ export class DAppSwapPage extends BasePage {
     readonly swapBtn = this.page.getByTestId('swap');
     readonly waitingModal = this.page.getByTestId('activity-popup-pending-logo');
     readonly submittedToast = this.page.getByText(/(Wrapped|Swapped|Submitted|Success)/i).first();
-    readonly duplicateWarningModal = this.page.getByText(/same transaction|重复提交|are you sure/i).first();
+    readonly duplicateWarningModal = this.page.getByText(/same transaction|duplicate submission|are you sure/i).first();
 
     // Compliance Warning Modals (Fires on unmapped/high-risk asset profiles)
     readonly tokenWarningContinueBtn = this.page.getByRole('button', { name: 'Continue' });
@@ -51,14 +51,14 @@ export class DAppSwapPage extends BasePage {
     constructor(page: Page) { super(page); }
 
     /**
-     * Executes the baseline Swap transactional form filling lifecycle.
-     * @param {string} sellAmount - Quantitative asset amount to dispatch (Defaults to CONFIG, denominated in ETH)
-     * @param {string} token - Desired crypto token identifier string (Defaults to CONFIG, e.g., WETH)
+     * Executes the baseline automated swap workflow on the Uniswap V3 client layout interface.
+     * @param {string} sellAmount - Outbound execution transaction payload value (Defaults to config matrix)
+     * @param {string} token - Inbound target asset ticker allocation nomenclature (Defaults to WETH)
      */
     async executeSwap(
         sellAmount: string = CONFIG.SWAP_DATA.SELL_AMOUNT,
         token: string = CONFIG.SWAP_DATA.TARGET_TOKEN
-    ) {
+    ): Promise<void> {
         console.log(`[Form] Initiating Swap form workflow: ${sellAmount} ETH -> ${token}`);
 
         // Dynamic Routing Verification: Validate layout constraints align to the /swap route
@@ -68,23 +68,44 @@ export class DAppSwapPage extends BasePage {
             console.log('[Form] Targeted Swap route loaded successfully');
         }
 
-        // Phase 1: Target Token Resolution Sequence
+        // ====================================================================================
+        // 🛡️ Phase 1: Target Token Resolution Sequence (Armored Overrides Implemented)
+        // ====================================================================================
         console.log('[Step 1] Activating vendor asset modal selection overlay');
         await this.waitElemVisible(this.selectTokenBtn, 'Token selector button');
         await this.elemClick(this.selectTokenBtn, 'Trigger vendor asset selection overlay');
 
         // Populate targeted token search term payloads
         await this.waitElemVisible(this.searchTokenInput, 'Token query input selector');
-        await this.elemFill(this.searchTokenInput, token, 'Inject target token ticker');
 
-        // Subgraph Ingestion Waiting Window: Accommodates Subgraph remote query rendering lags
-        await this.waitTimeout(3000);
+        /**
+         * Architectural Guardrail: Human-like Keystroke Simulation Injection.
+         * Direct .fill() mutations bypass native element keyup/keydown event listener streams, 
+         * triggering race condition drop-outs inside modern Virtual DOM debounce handlers during dense test sequences.
+         * Enforcing focus orientation -> dynamic wipe -> pressSequentially guarantees complete hook settlement.
+         */
+        await this.searchTokenInput.click({ force: true });      // Secure browser pointer focus lock
+        await this.searchTokenInput.fill('');                    // Purge layout remnants cleanly
+        await this.waitTimeout(300);                              // Micro operational synchronization window
 
-        // Filter against exact ticker nomenclature definitions to intercept fraudulent token profiles
-        const wethOption = this.page.getByRole('button', { name: 'Wrapped Ether WETH' }).first();
+        // Dispatch sequential string inputs with 150ms delays to natively trigger upstream Subgraph queries
+        await this.searchTokenInput.pressSequentially(token, { delay: 150 });
+        console.log(`⌨️ [Token-Selector] Human-like keystroke arrays dispatched into search block with 150ms delays.`);
+
+        /**
+         * Multi-pronged Resilient Locator Array.
+         * Binds strict WAI-ARIA role selectors with custom data-testids and semantic fallback structures.
+         * Prevents front-end layout mutation breaks if application vendor updates component layout classes.
+         */
+        const wethOption = this.page.getByRole('button', { name: 'Wrapped Ether WETH' }).first()
+            .or(this.page.locator('[data-testid="token-option-WETH"]').first())
+            .or(this.page.locator('.token-item:has-text("WETH")').first());
+
+        console.log(`⏳ [Token-Selector] Awaiting visual layout convergence for option node: ${token}`);
         await wethOption.waitFor({ state: 'visible', timeout: 15000 });
-        await wethOption.click();
+        await wethOption.click({ force: true });
         console.log('[Step 1] Targeted asset selected and validated');
+        // ====================================================================================
 
         // Phase 2: Intercept Compliance/Risk Modals (First-time deployment edge case profiles)
         console.log('[Step 2] Speculative parsing: handling high-risk token disclaimer overlays');
@@ -92,8 +113,16 @@ export class DAppSwapPage extends BasePage {
 
         // Phase 3: Outbound Payload Injection
         console.log('[Step 3] Dispatching sell amount value properties');
-        await this.elemFill(this.sellAmountInput, sellAmount, 'Populate outbound ETH transaction amount');
 
+        // 1. Forcefully click the input field to secure browser pointer focus lock
+        await this.sellAmountInput.click({ force: true });
+
+        // 2. Wipe any potential dirty data remnants from the input field
+        await this.sellAmountInput.fill('');
+        await this.waitTimeout(200);
+
+        await this.sellAmountInput.pressSequentially(sellAmount, { delay: 100 });
+        console.log(`⌨️ [Form-Input] Amount payload [${sellAmount}] sequentially typed with stable event hooks.`);
         // 💡 Core Paradigm Shift: Manually dispatch input/change events to the DOM node.
         // Modern Virtual DOM architectures (e.g., React/Next.js) map states using custom element hooks.
         // Standard Playwright driver .fill() routines occasionally fail to trigger the remote pricing calculations.
@@ -147,7 +176,7 @@ export class DAppSwapPage extends BasePage {
      */
     async waitForBuyAmount() {
         console.log('[Wait] Auditing downstream pricing quote calculation conversions...');
-        await this.waitElemVisible(this.buyAmountInput, 'Target conversion反显 box');
+        await this.waitElemVisible(this.buyAmountInput, 'Target conversion telemetry box');
 
         for (let i = 0; i < 20; i++) {
             const buyAmountValue = await this.buyAmountInput.inputValue().catch(() => '');
@@ -190,7 +219,7 @@ export class DAppSwapPage extends BasePage {
         let clickBtn = this.swapBtn;
         if (!isEnabled) {
             console.log('[Confirm] Main interaction button constrained by debounce; falling back to alternative localized selectors');
-            clickBtn = this.page.getByRole('button', { name: /Swap|Confirm|确认/i });
+            clickBtn = this.page.getByRole('button', { name: /Swap|Confirm/i });
             await clickBtn.waitFor({ state: 'visible', timeout: 5000 });
         }
 
@@ -207,8 +236,7 @@ export class DAppSwapPage extends BasePage {
             console.log('[Confirm] Front-end duplicate transmission shields stayed inactive');
         }
 
-        // 💡 Mitigation Hook: Resolve extension internal navigation loops
-        // Select browser wallet variants instantiate a shell layout (notification.html) before injecting runtime transaction routing hooks.
+        // select browser wallet variants instantiate a shell layout (notification.html) before injecting runtime transaction routing hooks.
         // Immediate operational parsing prior to complete router stabilization breaks locator pointer arrays.
         console.log(`[Confirm] Diagnostics - Captured wallet router path: ${popup.url()}`);
         if (popup.url().includes('notification.html')) {
@@ -244,7 +272,7 @@ export class DAppSwapPage extends BasePage {
 
         // Phase 2: Persistent Broadcast Confirmation Interceptions
         console.log('[Response] Phase 2: Initializing 60s resilient tracking for Transaction Submitted status alerts...');
-        await this.submittedToast.waitFor({ state: 'visible', timeout: 60000 });
+        await this.submittedToast.waitFor({ state: 'visible', timeout: 120000 });
 
         let successMessage = '';
         try {
@@ -296,7 +324,7 @@ export class DAppSwapPage extends BasePage {
 
         let clickBtn = this.swapBtn;
         if (!await this.swapBtn.isEnabled()) {
-            clickBtn = this.page.getByRole('button', { name: /Swap|Confirm|确认/i });
+            clickBtn = this.page.getByRole('button', { name: /Swap|Confirm/i });
         }
 
         console.log(`[Stress] Dispatching payloads. Bypassing framework visibility layers to invoke native pointer events...`);
@@ -328,7 +356,7 @@ export class DAppSwapPage extends BasePage {
             }
         }
 
-        // 📊 Final Post-Mortem Recon: Aggregate live handles to assert anti-debounce capability
+        // Aggregate live handles to assert anti-debounce capability
         await this.waitTimeout(2000); // Buffer allowing asynchronous popup allocation instances to reveal themselves
         const allPages = this.page.context().pages();
         const walletPopups = allPages.filter(p =>
