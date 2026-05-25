@@ -32,7 +32,7 @@ Under high-frequency automated input, modern DApp front-ends (like Uniswap) ofte
 
 ### 2. On-chain Balance Verification
 Validating a "Transaction Submitted" UI toast is insufficient for financial integrity.
-* **Solution:** Integration with `ethers.js` and Sepolia RPC nodes. After broadcasting a transaction, the framework polls the RPC node for the transaction receipt and uses `BigInt` to calculate the delta of asset changes (BalanceBefore - BalanceAfter - ActualGas), ensuring 1:1 financial accuracy.
+* **Solution:** Integration with `ethers.js` and Sepolia RPC nodes. After broadcasting a transaction, the framework polls the RPC node for the transaction receipt and uses `BigInt` to calculate the delta of asset changes (BalanceBefore - BalanceAfter - ActualGas), ensuring precise balance reconciliation.
 
 ### 3. Extension State Management
 MetaMask LevelDB caches often trigger read-write lock conflicts during concurrent testing.
