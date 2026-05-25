@@ -1,18 +1,23 @@
 /**
- * walletFixtures.ts - Root Level Web3 Browser Sandboxing Test Fixtures
+ * walletFixtures - Root Level Web3 Browser Sandboxing Test Fixtures
  * @module walletFixtures
  * @description Establishes the foundational physical layer isolation bounds for the runner framework.
- * Programmatically injects the raw MetaMask extension binary block directly into persistent memory profiles.
+ * Programmatically injects the unzipped MetaMask extension binary into a persistent Chromium user directory profiles,
+ * and initializes decoupled Page Object models across clean test lifecycle boundaries.
+ * * Architectural Paradigms:
+ * 1. Persistent State Retention: Seeds extension configurations (keys, networks) cleanly across specs.
+ * 2. Automated Fixture Teardown: Safely closes downstream browser contexts to mitigate memory leakages.
+ * 3. Atomic Dependency Injection: Decouples page lifecycle assignments away from spec body initializations.
  */
 
-import { test as base, chromium, type BrowserContext, type Page } from '@playwright/test';
-import path from 'path';
-import fs from 'fs';
-import { CONFIG } from '../../config/config';
-import { MetaMaskPage } from '../../pages/wallet/MetaMaskPage';
+import { test as base, type BrowserContext, type Page, chromium } from '@playwright/test';
+import { MetaMaskPage } from "../../pages/wallet/MetaMaskPage";
 import { DAppSwapPage } from '../../pages/dapp/DAppSwapPage';
-import { WalletConnectPage } from '../../pages/dapp/WalletConnectPage';
+import { WalletConnectPage } from "../../pages/dapp/WalletConnectPage";
+import { CONFIG } from '../../config/config';
 
+
+// Declare root structural properties allocated to the baseline wallet sandboxing setup
 type WalletFixtures = {
     context: BrowserContext;
     page: Page;
@@ -21,69 +26,82 @@ type WalletFixtures = {
     connectPage: WalletConnectPage;
 };
 
+// Extend foundational Playwright test suites to map specialized EVM execution environments
 export const test = base.extend<WalletFixtures>({
-    
-    context: async ({}, use) => {
-        const METAMASK_PATH = path.resolve(CONFIG.METAMASK.EXTENSION_PATH || 'extension/metamask');
-        const USER_DATA_PATH = path.resolve(CONFIG.METAMASK.USER_DATA_PATH || 'user_data');
+    /**
+     * context Fixture: Hooks persistent storage structures and injects raw Chrome extension components.
+     * Maps headless configurations natively based on upstream CI/CD matrix environments.
+     */
+    context: async ({ }, use) => {
+        // Spin up isolated runtime profiles mapping directly to local user data cache bounds
+        const context = await chromium.launchPersistentContext(
+            CONFIG.METAMASK.USER_DATA_PATH,
+            {
+                headless: CONFIG.HEADLESS,
+                args: [
+                    `--disable-extensions-except=${CONFIG.METAMASK.EXTENSION_PATH}`,
+                    `--load-extension=${CONFIG.METAMASK.EXTENSION_PATH}`,
 
-        // 清理残留锁文件，防止启动失败
-        const lock1 = path.join(USER_DATA_PATH, 'SingletonLock');
-        const lock2 = path.join(USER_DATA_PATH, 'SingletonCookie');
-        try { if (fs.existsSync(lock1)) fs.unlinkSync(lock1); } catch (e) {}
-        try { if (fs.existsSync(lock2)) fs.unlinkSync(lock2); } catch (e) {}
+                    // Disable Automation Controlled Features
+                    '--disable-blink-features=AutomationControlled',
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-site-isolation-trials',
+                    '--disable-features=IsolateOrigins,BlockInsecurePrivateNetworkRequests,ExtensionAntiPhishing'
+                ]
+            }
+        );
 
-        console.log('📦 [Wallet-Fixture] Mounting persistent browser context...');
-        
-        const context = await chromium.launchPersistentContext(USER_DATA_PATH, {
-            headless: false, // ✅ GitHub 必须开启无头模式
-            viewport: { width: 1920, height: 1080 },
-            locale: 'en-US',
-            args: [
-                `--disable-extensions-except=${METAMASK_PATH}`,
-                `--load-extension=${METAMASK_PATH}`,
-                '--lang=en-US',
-                '--accept-lang=en,en-US',
-                '--start-maximized',
-                
-                // ✅ GitHub Linux 稳定参数
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--disable-software-rasterizer',
-
-                // 屏蔽崩溃弹窗
-                '--disable-crash-reporter',
-                '--hide-crash-restore-bubble',
-                '--disable-infobars',
-                '--no-default-browser-check',
-            ]
-        });
-
-        console.log('⏳ [Wallet-Fixture] Waiting for MetaMask to load...');
-        await new Promise(resolve => setTimeout(resolve, 5000)); // ✅ 修复等待方法
-
+        // Pass control blocks back down to upstream operational threads
         await use(context);
 
-        console.log('🏁 [Wallet-Fixture] Closing context...');
+        // Automated Teardown: Safely execute context destruction to purge volatile memory parameters post-run
         await context.close();
     },
 
+    /**
+     * page Fixture: Materializes explicit browser windows and routes context paths to the targeted gateway node.
+     */
     page: async ({ context }, use) => {
-        console.log('📄 [Wallet-Fixture] Allocating primary DApp viewport...');
-        const pages = context.pages();
-        const page = pages.length > 0 ? pages[0] : await context.newPage();
-        
-        await page.goto(CONFIG.BASE_URL as string);
-        await page.bringToFront();
-        
+        const page = await context.newPage();
+
+        // 1. 设置合理的页面全局超时，防止被 Cloudflare 无限挂起卡死进程
+        page.setDefaultTimeout(45000);
+
+        console.log(`📡 [Network-Defense] Routing browser tracking pipeline onto host gateway: ${CONFIG.BASE_URL}`);
+        try {
+            // 2. 优先采用 'commit' 或者是 'domcontentloaded'，只要浏览器地址栏咬住、HTML 下发了就立刻放行，绝不留在原地等耗时的第三方广告/监控脚本加载
+            await page.goto(CONFIG.BASE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        } catch (e) {
+            console.log(`⚠️ [Network-Defense] Primary network pipe blocked or Cloudflare handshake delayed. Dispatched localized sandbox context reload...`);
+            // 3. 如果卡了空白页，反手一个强制强制刷新，强行打破 Cloudflare 的挂起状态！
+            await page.reload({ waitUntil: 'load' });
+        }
+
         await use(page);
     },
 
-    mmPage: async ({ page }, use) => { await use(new MetaMaskPage(page)); },
-    swapPage: async ({ page }, use) => { await use(new DAppSwapPage(page)); },
-    connectPage: async ({ page }, use) => { await use(new WalletConnectPage(page)); }
+    /**
+     * mmPage Fixture: Instantiates and maps decentralized operational tracking controllers for MetaMask.
+     */
+    mmPage: async ({ page }, use) => {
+        await use(new MetaMaskPage(page));
+    },
+
+    /**
+     * swapPage Fixture: Instantiates and maps core exchange form operation controllers.
+     */
+    swapPage: async ({ page }, use) => {
+        await use(new DAppSwapPage(page));
+    },
+
+    /**
+     * connectPage Fixture: Instantiates and maps vendor listing authorization controllers.
+     */
+    connectPage: async ({ page }, use) => {
+        await use(new WalletConnectPage(page));
+    }
 });
 
+// Re-export standard expectation validation APIs cleanly
 export { expect } from '@playwright/test';

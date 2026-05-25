@@ -25,7 +25,8 @@ test.describe('DApp Cryptographic Pending Session Armor Auditing Matrix', () => 
      * forcing the block mutation to stall at node memory pool levels to evaluate client-side UI fallback indicators.
      */
     test('Anomaly Scenario: Simulated Underpriced Gas Stalling to Audit UI Defensive Guardrails', async ({ page, swapPage, mmPage }) => {
-        // 💡 Strategic Safeguard: Extract variables natively from the fully pre-authenticated runtime sandbox context
+        await page.waitForTimeout(5000);
+        // Strategic Safeguard: Extract variables natively from the fully pre-authenticated runtime sandbox context
         const userAddress = process.env.WALLET_ADDRESS!;
         const mockSwapAmount = "0.005";
         const targetAsset = "WETH";
@@ -40,7 +41,6 @@ test.describe('DApp Cryptographic Pending Session Armor Auditing Matrix', () => 
         const { popup: transactionPopup } = await swapPage.confirmAndGetWallet();
 
         // Mutate gas pricing models down to baseline configurations to force mempool stalling sequence loops
-        // The underlying locator registry safely intercepts the low gas selection tabs out-of-band
         await mmPage.updateGasFeeAndConfirmSwap(transactionPopup);
         console.log('[Spec-Audit] Low-priced transaction broadcasted successfully. Awaiting mempool stall state updates...');
 
@@ -59,7 +59,6 @@ test.describe('DApp Cryptographic Pending Session Armor Auditing Matrix', () => 
             }
 
             // Mitigation Pass Logic A: Evaluate Rigid Structural Interception Controls (Button Disablement)
-            // Strategy: Use short-duration micro-timeouts coupled with soft catch blocks to neutralize transient layout shifts.
             const isBtnDisabled = await swapPage.swapBtn.isDisabled({ timeout: 3000 }).catch(() => false);
 
             if (isBtnDisabled) {

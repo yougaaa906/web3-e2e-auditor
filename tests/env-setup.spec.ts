@@ -1,6 +1,6 @@
 /**
- * MetaMaskSetup.spec.ts - Out-of-Band Cloud-Native Provisioning Engine
- * @module MetaMaskSetupSpec
+ * env-setup.spec.ts - Out-of-Band Cloud-Native Provisioning Engine
+ * @module EnvSetupSpec
  * @description Executes deterministic zero-state wallet environment provisioning.
  * Orchestrates linear onboarding matrices directly onto the raw web3 provider extension context
  * without injecting unsafe evaluation hooks or generating phantom browser tabs.
@@ -16,6 +16,7 @@
 import { test, chromium, type Page, type Locator } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
+import { CONFIG } from '../config/config';
 
 // =========================================================================
 // 🎯 Declarative Provisioning Blueprint (Decoupled Locator Registry)
@@ -54,8 +55,8 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     // Allocate generous 90-second execution bracket for network-bound cryptographic actions
     test.setTimeout(90000);
 
-    const METAMASK_PATH = path.resolve('extension/metamask');
-    const USER_DATA_PATH = path.resolve('user_data');
+    const METAMASK_PATH = CONFIG.METAMASK.EXTENSION_PATH;
+    const USER_DATA_PATH = CONFIG.METAMASK.USER_DATA_PATH;
 
     if (!fs.existsSync(METAMASK_PATH)) {
         throw new Error(`❌ FATAL CONFIGURATION DEFECT: Extension binary block missing at targeted path: ${METAMASK_PATH}`);
@@ -138,7 +139,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await pinDone.waitFor({ state: 'visible', timeout: 10000 });
     await pinDone.click();
 
-    // --- Milestone 6: L-3 Coordinate Pinned Network Configuration (Sepolia Alignment) ---
+    //--- Milestone 6: L-3 Coordinate Pinned Network Configuration (Sepolia Alignment) ---
     console.log('🌐 Executing physical vector positioning over the primary network display component...');
 
     await page.waitForLoadState('networkidle').catch(() => { });
@@ -172,7 +173,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await targetCard.scrollIntoViewIfNeeded();
     await targetCard.click({ force: true });
 
-    // --- Milestone 7: Final Synchronization & State Persistence ---
+    //--- Milestone 7: Final Synchronization & State Persistence ---
     await page.waitForTimeout(2000);
     console.log('🏁 State tree tracking hardened successfully. Closing storage context channels...');
     await context.close();

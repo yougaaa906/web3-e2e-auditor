@@ -54,11 +54,11 @@ const test = walletTest.extend<ConnectedWalletFixtures>({
         await mmPage.connectWallet(connectPopup);
         console.log('✅ [Fixture-Boot] Multichain configuration profiles updated. Reverting focus back to client window host.');
 
-        // --- Pipeline Phase 4: Jerry's In-Context Frontend Synchronization Strategy ---
+        // --- Pipeline Phase 4: Frontend Synchronization Strategy ---
         // Rationale: Web3 state trackers frequently fail to propagate network updates dynamically across disparate extension runtimes 
         // under sandboxed sessions. We enforce a rigid window escalation vector, shifting focus back onto the primary dApp layer 
         // to manually override the global Testnet Mode threshold.
-        console.log('🛡️ [Fixture-Boot] [Jerry-绝杀流] Escalating viewport context. Forcing in-dApp testnet state alignment...');
+        console.log('🛡️ [Fixture-Boot] Escalating viewport context. Forcing in-dApp testnet state alignment...');
         try {
             // Guarantee the client host application occupies active system view focus
             await page.bringToFront();

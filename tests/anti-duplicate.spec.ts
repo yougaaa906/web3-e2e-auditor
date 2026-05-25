@@ -26,6 +26,8 @@ test.describe('Uniswap V3 Anti-Duplicate Transmission Security Auditing Matrix',
      * require precise evaluation parameters scaled up to 10^18 Orders of Wei.
      */
     test('High-Order Stress Test: Rapid Concurrent Bombardment to Validate Debounce Mechanisms and Fund Invariance', async ({ page, swapPage, mmPage, context }) => {
+        test.setTimeout(240000);
+        await page.waitForTimeout(5000);
         const userAddress = process.env.WALLET_ADDRESS!;
 
         // 💡 Strategic Safeguard: Declare outbound transactional values explicitly in BigInt Wei

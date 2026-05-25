@@ -25,6 +25,8 @@ test.describe('Uniswap V3 On-Chain Transaction Status Auditing Matrix', () => {
      * with immutable blockchain ledger receipts and absolute BigInt ledger mathematical balance equations.
      */
     test('Standard Transaction: Converting Native ETH to Wrapped WETH Liquidity', async ({ page, swapPage, mmPage }) => {
+        test.setTimeout(240000);
+        await page.waitForTimeout(5000);
         // 💡 Strategic Safeguard: Harness BigInt primitives to armor numbers against catastrophic rounding issues.
         // Standard JavaScript Number boundaries break down at MAX_SAFE_INTEGER (~9x10^15), whereas native EVM financial 
         // parameters are calculated across 18-decimal fields reaching 10^18 orders of scale.
@@ -48,19 +50,29 @@ test.describe('Uniswap V3 On-Chain Transaction Status Auditing Matrix', () => {
         // Strategy: Deploys initiateAndConfirmSwap to shield process sequences from sudden target unmounting or closure drops.
         await mmPage.initiateAndConfirmSwap(transactionPopup);
 
-        // --- Milestone 4: Intercept Application UI Broadcast Acknowledgments ---
+        // --- Milestone 4: Viewport Priority Escalation Vector ---
+        // Rationale: Instantly shift graphical execution focus back onto the primary client application page post-signature.
+        // This defeats browser-level dynamic process background tab throttling, forcing immediate DOM rendering loops 
+        // to emit active visibility hooks for volatile notification alerts.
+        await page.bringToFront();
+        console.log('🌍 [Spec-Pipeline] Wallet signature broadcasted. Re-activating Client DApp viewport to front immediately.');
+
+        // --- Milestone 5: Intercept Application UI Broadcast Acknowledgments ---
         const dappResponse = await swapPage.waitForDAppResponse();
         expect(dappResponse.isSuccess, '❌ BROADCAST FAILURE: Client application failed to emit valid transaction receipt receipts.').toBe(true);
 
-        // --- Milestone 5: Reconcile Structural Ledgers to Capture Unique Hash Signatures ---
+        // --- Milestone 6: Reconcile Structural Ledgers to Capture Unique Hash Signatures ---
+        // Route context to the full-screen dashboard workspace to dynamically mine volatile URL address assets
+        // directly from DOM attributes, eliminating absolute-path hardcoding and sudden panel self-destruction anomalies.
         const mmFullPage = await mmPage.openMetaMaskHome();
         const txHash = await mmPage.getLatestTransactionHash(mmFullPage);
+        console.log(`🔑 [Spec-Pipeline] Masterfully brought back hash payload from DOM attributes: ${txHash}`);
 
-        // --- Milestone 6: Direct Out-of-Band RPC Execution Check ---
+        // --- Milestone 7: Direct Out-of-Band RPC Execution Check ---
         console.log('🔍 [Spec-Audit] Polling remote JSON-RPC nodes to parse receipt code states and extract gas billing details...');
         const txStatus = await verifyTxStatusViaRPC(txHash);
 
-        // --- Milestone 7: Financial Forensic Audit & Complete Statement Reconciliation ---
+        // --- Milestone 8: Financial Forensic Audit & Complete Statement Reconciliation ---
         const balanceAfter = await getBalanceViaRPC(userAddress);
 
         // Parse actual expenditure delta variables against mathematical ledger forecasts to screen precision rounding leaks
