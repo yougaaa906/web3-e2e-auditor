@@ -10,6 +10,7 @@
  */
 
 import { test, expect } from './fixtures/connectedWalletFixtures';
+import { logger } from '../utils/logger';
 
 test.describe('MetaMask Wallet Connection & Session Integrity Suites', () => {
     /**
@@ -30,6 +31,6 @@ test.describe('MetaMask Wallet Connection & Session Integrity Suites', () => {
         // 🛡️ Critical Security Assertion: Verify structural layout format adheres back to an EVM hexadecimal standard
         expect(walletAddress.toLowerCase()).toContain('0x');
 
-        console.log(`✅ [Spec-Audit] Connection handshake verified successfully. Bound Address: ${walletAddress}`);
+        logger.info('WALLET_FLOW', 'CONNECTION_VERIFIED', `Connection handshake verified successfully. Bound Address: ${walletAddress}`);
     });
 });

@@ -11,8 +11,9 @@
  */
 
 import { expect } from '@playwright/test';
-import { test } from './fixtures/connectedWalletFixtures'; // Enforce strict usage of our authenticated cloud-native fixture container
+import { test } from './fixtures/connectedWalletFixtures';
 import { CONFIG } from '../config/config';
+import { logger } from '../utils/logger';
 
 test.describe('DApp Cryptographic Pending Session Armor Auditing Matrix', () => {
 
@@ -32,7 +33,7 @@ test.describe('DApp Cryptographic Pending Session Armor Auditing Matrix', () => 
         const targetAsset = "WETH";
 
         // --- Milestone 1: Client Interaction Layer Ingestion ---
-        console.log('[Spec-Audit] Phase 1: Context pre-asserted by fixture container. Injecting underpriced gas parameters...');
+        logger.info('SWAP_FLOW', 'GAS_INIT', 'Context pre-asserted by fixture container. Injecting underpriced gas parameters...');
 
         // Directly execute the swap form interaction pipeline without invoking duplicate configuration handshakes
         await swapPage.executeSwap(mockSwapAmount, targetAsset);
@@ -42,15 +43,15 @@ test.describe('DApp Cryptographic Pending Session Armor Auditing Matrix', () => 
 
         // Mutate gas pricing models down to baseline configurations to force mempool stalling sequence loops
         await mmPage.updateGasFeeAndConfirmSwap(transactionPopup);
-        console.log('[Spec-Audit] Low-priced transaction broadcasted successfully. Awaiting mempool stall state updates...');
+        logger.info('SWAP_FLOW', 'GAS_LOW', 'Low-priced transaction broadcasted successfully. Awaiting mempool stall state updates...');
 
         // --- Milestone 2: Assert Client UI Synchronization Capabilities ---
-        console.log('[Spec-Audit] Phase 2: Interrogating client UI responsiveness over transient asynchronous pending indicators...');
+        logger.info('TEST_EXECUTION', 'UI_CHECK', 'Interrogating client UI responsiveness over transient asynchronous pending indicators...');
         const hasPendingModal = await swapPage.waitForPendingModal(10000);
         expect(hasPendingModal, '❌ SECURITY MITIGATION RISK: DApp interface layer failed to project a dedicated pending transaction modal under congestion!').toBe(true);
 
         // --- Milestone 3: Forensic Audit over Interactive Security Mitigations ---
-        console.log('[Spec-Audit] Phase 3: Commencing forensic verification over interaction boundary locking mechanisms...');
+        logger.info('SECURITY_AUDIT', 'MITIGATION_CHECK', 'Commencing forensic verification over interaction boundary locking mechanisms...');
 
         try {
             // Verify execution context channel remains healthy post-mempool stall mutation
@@ -62,12 +63,12 @@ test.describe('DApp Cryptographic Pending Session Armor Auditing Matrix', () => 
             const isBtnDisabled = await swapPage.swapBtn.isDisabled({ timeout: 3000 }).catch(() => false);
 
             if (isBtnDisabled) {
-                console.log("✅ [Mitigation-A Secure] DApp enforced optimal interaction locking boundaries. Trigger component successfully entered DISABLED state.");
-                console.log('✅ [Spec-Audit] Audit Status: SUCCESS. Hardened action barriers locked out re-entry vectors completely.');
+                logger.info('SECURITY_AUDIT', 'MITIGATION_A_PASS', 'DApp enforced optimal interaction locking boundaries. Trigger component successfully entered DISABLED state.');
+                logger.info('SECURITY_AUDIT', 'FINAL_PASS', 'Audit Status: SUCCESS. Hardened action barriers locked out re-entry vectors completely.');
                 return; // Structural verification target satisfied. Terminate speculative branches safely.
             }
 
-            console.log("ℹ️ Interactive trigger remained unblocked under congestion. Escalating forensic pipeline to monitor soft tracking toast structures...");
+            logger.info('SECURITY_AUDIT', 'MITIGATION_B_CHECK', 'Interactive trigger remained unblocked under congestion. Escalating forensic pipeline to monitor soft tracking toast structures...');
 
             // Mitigation Pass Logic B: Evaluate Soft Informational Alerts (e.g., "1 Pending..." Status Trackers)
             const pendingToast = page.locator('text=/1 Pending|Submitting/i');
@@ -79,18 +80,18 @@ test.describe('DApp Cryptographic Pending Session Armor Auditing Matrix', () => 
                 .catch(() => false);
 
             if (hasToast) {
-                console.log("⚠️ [Mitigation-B Warning] DApp implemented passive alert structures. Re-entry channels remain active, but warning notifications populate tracking nodes.");
-                console.log('✅ [Spec-Audit] Audit Status: SUCCESS. Soft context alerts verified completely inside reactive layouts.');
+                logger.warn('SECURITY_AUDIT', 'MITIGATION_B_WARN', 'DApp implemented passive alert structures. Re-entry channels remain active, but warning notifications populate tracking nodes.');
+                logger.info('SECURITY_AUDIT', 'FINAL_PASS', 'Audit Status: SUCCESS. Soft context alerts verified completely inside reactive layouts.');
             } else {
                 // Mitigation Pass Logic C: Critical Void Defect - Neither hard blockades nor warning banners verified.
-                console.log("❌ [Mitigation-C Vulnerability] CRITICAL DEFENSIVE COLLAPSE: Application state completely flushed session visibility bounds during stalls.");
-                console.log("❌ UI completely abandoned active tracking indicators. Elevated risks of unauthorized Nonce re-submission or duplicate fund drainage detected.");
+                logger.error('SECURITY_AUDIT', 'MITIGATION_C_VULN', 'CRITICAL DEFENSIVE COLLAPSE: Application state completely flushed session visibility bounds during stalls.');
+                logger.error('SECURITY_AUDIT', 'MITIGATION_C_VULN', 'UI completely abandoned active tracking indicators. Elevated risks of unauthorized Nonce re-submission or duplicate fund drainage detected.');
                 expect(hasToast, 'DApp must retain visibility parameters and refuse to purge tracking status containers during active stalling cycles').toBe(true);
             }
 
         } catch (error: any) {
             // Global Environment Armor: Trap volatile thread exceptions to guard runner stability limits
-            console.error(`⚠️ [Spec-Audit] Trapped non-blocking exception during security verification sequence: ${error.message}`);
+            logger.warn('TEST_EXECUTION', 'EXCEPTION_CAPTURE', `Trapped non-blocking exception during security verification sequence: ${error.message}`);
             expect(page.isClosed(), "Systemic application crash detected: DApp container entered an unrecoverable dead lock state").toBe(false);
         }
     });

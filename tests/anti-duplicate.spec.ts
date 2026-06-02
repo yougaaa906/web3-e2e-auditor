@@ -12,6 +12,7 @@ import { expect } from '@playwright/test';
 import { test } from '../tests/fixtures/connectedWalletFixtures';
 import { CONFIG } from '../config/config';
 import { verifyTxStatusViaRPC, getBalanceViaRPC } from '../utils/ChainHelper';
+import { logger } from '../utils/logger';
 
 test.describe('Uniswap V3 Anti-Duplicate Transmission Security Auditing Matrix', () => {
 
@@ -35,18 +36,18 @@ test.describe('Uniswap V3 Anti-Duplicate Transmission Security Auditing Matrix',
         const CLICK_COUNT = CONFIG.TEST_DATA.VIOLENT_CLICK_COUNT; // Quantified bombardment threshold waves
 
         // --- Milestone 0: Record Pre-execution Baseline Ledger States ---
-        console.log(`📡 [Audit-Pre] Sampling baseline remote RPC account balances for target user address: ${userAddress}`);
+        logger.info('RPC_QUERY', 'AUDIT_PRE', `Sampling baseline remote RPC account balances for target user address: ${userAddress}`);
         const balanceBefore = await getBalanceViaRPC(userAddress);
-        console.log(`💰 [Audit-Pre] Initial Balance Ledger: ${balanceBefore.toString()} Wei`);
+        logger.debug('SECURITY_AUDIT', 'LEDGER_INIT', `Initial Balance Ledger: ${balanceBefore.toString()} Wei`);
 
         // --- Milestone 1: Client Interaction Layer Ingestion ---
         // Architectural Note: Multi-layered connection handshakes, vault decryptions, and provider multi-chain selection
         // flows are completely provisioned upstream by the 'authenticatedContext' fixture container.
-        console.log('🛡️ [Spec-Pipeline] Pre-authentication pipelines verified. Seamlessly entering target trade layout...');
+        logger.info('SWAP_FLOW', 'PRE_AUTH', 'Pre-authentication pipelines verified. Seamlessly entering target trade layout...');
         await swapPage.executeSwap();
 
         // --- Milestone 2: Active Stress Injection Control Pipeline ---
-        console.log(`🚀 [Stress-Test] Initializing instantaneous pressure bombardment wave across Swap click triggers... Target: ${CLICK_COUNT} fast dispatches.`);
+        logger.info('SECURITY_AUDIT', 'STRESS_INIT', `Initializing instantaneous pressure bombardment wave across Swap click triggers... Target: ${CLICK_COUNT} fast dispatches.`);
 
         // Tactical Design Shift: Leverages native browser dispatchEvent handlers inside the PO wrapper instead of blocking driver clicks.
         // Strips automated framework visual validation barriers to inject pure concurrent load speeds without thread lock anomalies.
@@ -58,7 +59,7 @@ test.describe('Uniswap V3 Anti-Duplicate Transmission Security Auditing Matrix',
         const allPages = context.pages();
         const walletPopups = allPages.filter(p => p.url().includes('notification.html') || p.url().includes('confirm-transaction'));
 
-        console.log(`📊 [Tier-1 Audit] Live transaction signature window allocations count: ${walletPopups.length}`);
+        logger.info('SECURITY_AUDIT', 'TIER1_AUDIT', `Live transaction signature window allocations count: ${walletPopups.length}`);
         expect(walletPopups.length, '❌ CRITICAL DEBOUNCE DEFECT: High-velocity concurrent actions bypassed UI filters, generating duplicate signature viewports!').toBe(1);
 
         // --- Tier 2 Defensive Assertion: Action Component Interaction Lockout ---
@@ -66,18 +67,18 @@ test.describe('Uniswap V3 Anti-Duplicate Transmission Security Auditing Matrix',
         if (await swapBtn.isVisible()) {
             await expect(swapBtn, '❌ SECURITY RISK: Interaction component remained enabled under stress; failing re-entry shielding evaluation!').toBeDisabled();
         } else {
-            console.log('✅ [Tier-2 Audit] Core interaction triggers unmounted automatically post-click; excellent idempotent re-entry effectiveness.');
+            logger.info('SECURITY_AUDIT', 'TIER2_PASS', 'Core interaction triggers unmounted automatically post-click; excellent idempotent re-entry effectiveness.');
         }
 
         // --- Milestone 3: Process Standard In-Context Signing Sequences ---
-        console.log('✅ [Spec-Audit] Frontend defensive shields verified successfully; handing context over to wallet signing arrays...');
+        logger.info('WALLET_FLOW', 'SIGN_INIT', 'Frontend defensive shields verified successfully; handing context over to wallet signing arrays...');
         await mmPage.initiateAndConfirmSwap(swapPopup);
 
         const dappResponse = await swapPage.waitForDAppResponse();
         expect(dappResponse.isSuccess, '❌ CONTRACT BROADCAST ERROR: DApp interface layer failed to project standard confirmation receipts.').toBe(true);
 
         // --- Milestone 4: Query Node Logs for State Invariance Forensic Reconciliation ---
-        console.log('🔍 [Spec-Audit] Extracting mutated on-chain block states via remote JSON-RPC routing...');
+        logger.info('RPC_QUERY', 'TX_EXTRACT', 'Extracting mutated on-chain block states via remote JSON-RPC routing...');
         const mmFullPage = await mmPage.openMetaMaskHome();
         const txHash = await mmPage.getLatestTransactionHash(mmFullPage);
         const txStatus = await verifyTxStatusViaRPC(txHash);
@@ -89,14 +90,14 @@ test.describe('Uniswap V3 Anti-Duplicate Transmission Security Auditing Matrix',
         const actualSpent = balanceBefore - balanceAfter;
         const expectedSpent = swapAmountWei + txStatus.totalGasFee;
 
-        console.log(`📊 --- Post-Stress Forensic Audit Invariance Report ---`);
-        console.log(`💰 Forecasted Combined Invoice Bill (Payload + Gas): ${expectedSpent.toString()} Wei`);
-        console.log(`💸 Absolute Live Account Balance Expenditure Delta:   ${actualSpent.toString()} Wei`);
+        logger.info('SECURITY_AUDIT', 'FORENSIC_REPORT', 'Post-Stress Forensic Audit Invariance Report');
+        logger.debug('SECURITY_AUDIT', 'FORENSIC_DATA', 'Forecasted Combined Invoice Bill (Payload + Gas): ' + expectedSpent.toString() + ' Wei');
+        logger.debug('SECURITY_AUDIT', 'FORENSIC_DATA', 'Absolute Live Account Balance Expenditure Delta: ' + actualSpent.toString() + ' Wei');
 
         // CRITICAL CONCURRENCY INVARIANCE CHECK: Irrespective of violent multi-clicks, only a singular ledger debit cycle must consolidate!
         expect(actualSpent, '❌ SYSTEMIC DOUBLE-SPEND FAILURE: Account ledger delta mismatches expected bill invoice parameters! Duplicate debits executed onto remote nodes.').toBe(expectedSpent);
         expect(txStatus.receipt.status, '❌ TRANSACTION REVERTED: Execution indicator code settled in a failed state (0x0) at node level.').toBe('0x1');
 
-        console.log('🏆 [PASS] Quantitative pressure audits finalized with perfect alignment! UI debounce parameters, window routing control, and on-chain asset invariance metrics passed with top engineering marks!');
+        logger.info('SECURITY_AUDIT', 'FINAL_PASS', 'Quantitative pressure audits finalized with perfect alignment! UI debounce parameters, window routing control, and on-chain asset invariance metrics passed with top engineering marks!');
     });
 });

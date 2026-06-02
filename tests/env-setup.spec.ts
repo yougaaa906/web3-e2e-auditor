@@ -17,6 +17,7 @@ import { test, chromium, type Page, type Locator } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 import { CONFIG } from '../config/config';
+import { logger } from '../utils/logger';
 
 // =========================================================================
 // 🎯 Declarative Provisioning Blueprint (Decoupled Locator Registry)
@@ -43,7 +44,7 @@ class OnboardingPageRegistry {
     static pinDoneBtn = (page: Page): Locator => page.getByTestId('pin-extension-done');
 
     // --- Phase 6: Core Network Threshold Switches (Sepolia Injection) ---
-    static networkPickerMenu = (page: Page): Locator => page.locator('[data-testid="network-display"] .mm-picker-network__arrow-down-icon, [data-testid="network-display"] span');
+    static networkPickerMenu = (page: Page): Locator => page.getByTestId('network-display')
     static globalTestnetToggle = (page: Page): Locator => page.locator('label.toggle-button');
     static sepoliaNetworkCard = (page: Page): Locator => page.getByTestId('Sepolia');
 }
@@ -69,7 +70,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
         throw new Error('❌ FATAL CREDENTIAL VOID: MNEMONIC or WALLET_PASSWORD environment variables are unasserted.');
     }
 
-    console.log('🚀 Mounting structural persistent browser sandbox with extension payload blocks...');
+    logger.info('TEST_EXECUTION', 'SANDBOX_INIT', 'Mounting structural persistent browser sandbox with extension payload blocks...');
     const context = await chromium.launchPersistentContext(USER_DATA_PATH, {
         headless: false,
         viewport: { width: 1920, height: 1080 }, // Hard limit to destroy mobile layout overrides
@@ -83,7 +84,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
         ],
     });
 
-    console.log('👀 Tracking asynchronous window creation events to capture core extension viewports...');
+    logger.info('TEST_EXECUTION', 'WINDOW_TRACK', 'Tracking asynchronous window creation events to capture core extension viewports...');
 
     // Asynchronous Viewport Ingestion: Trap the native out-of-band onboarding tab dynamically
     const page = await context.waitForEvent('page');
@@ -92,23 +93,23 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     // Soft buffer to ensure stable React architecture state updates
     await page.waitForLoadState('networkidle').catch(() => { });
     await page.waitForTimeout(2000);
-    console.log('🤖 Target context bound successfully. Starting zero-state automated environment inflation...');
+    logger.info('TEST_EXECUTION', 'CONTEXT_BOUND', 'Target context bound successfully. Starting zero-state automated environment inflation...');
 
     // --- Milestone 1: License Consent & Action Allocation ---
-    console.log('📝 Consuming legal policy agreements and entering structural import matrices...');
+    logger.info('TEST_EXECUTION', 'LICENSE', 'Consuming legal policy agreements and entering structural import matrices...');
     const termsCheck = OnboardingPageRegistry.termsCheckbox(page);
     await termsCheck.waitFor({ state: 'attached', timeout: 15000 });
     await termsCheck.click({ force: true });
     await OnboardingPageRegistry.importWalletBtn(page).click();
 
     // --- Milestone 2: Analytical Data Telemetry Deletion ---
-    console.log('📊 Dismissing out-of-band telemetry tracking components...');
+    logger.info('TEST_EXECUTION', 'TELEMETRY', 'Dismissing out-of-band telemetry tracking components...');
     const telemetryBtn = OnboardingPageRegistry.telemetryOptOutBtn(page);
     await telemetryBtn.waitFor({ state: 'visible', timeout: 10000 });
     await telemetryBtn.click();
 
     // --- Milestone 3: Sequential SRP Input Mapping ---
-    console.log('🔑 Dispatched sequence loops to fill cryptographic seed matrices...');
+    logger.info('TEST_EXECUTION', 'SRP_INPUT', 'Dispatched sequence loops to fill cryptographic seed matrices...');
     const mnemonicWords = mnemonicString.split(' ');
     for (let i = 0; i < 12; i++) {
         const fieldInput = OnboardingPageRegistry.srpInputSlot(page, i);
@@ -118,14 +119,14 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await OnboardingPageRegistry.srpConfirmBtn(page).click();
 
     // --- Milestone 4: Vault Account Lock Hardening ---
-    console.log('🔒 Encoding local storage security credential profiles...');
+    logger.info('TEST_EXECUTION', 'PASSWORD', 'Encoding local storage security credential profiles...');
     await OnboardingPageRegistry.passwordNewInput(page).fill(walletPassword);
     await OnboardingPageRegistry.passwordConfirmInput(page).fill(walletPassword);
     await OnboardingPageRegistry.passwordTermsCheckbox(page).click({ force: true });
     await OnboardingPageRegistry.passwordSubmitBtn(page).click();
 
     // --- Milestone 5: Clearance of Context Walkthrough Modal Nodes ---
-    console.log('🎉 Identity instantiated. Sweeping system instructional dialog cascades...');
+    logger.info('TEST_EXECUTION', 'WALKTHROUGH', 'Identity instantiated. Sweeping system instructional dialog cascades...');
 
     const completeBtn = OnboardingPageRegistry.completeDoneBtn(page);
     await completeBtn.waitFor({ state: 'visible', timeout: 15000 });
@@ -140,7 +141,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await pinDone.click();
 
     //--- Milestone 6: L-3 Coordinate Pinned Network Configuration (Sepolia Alignment) ---
-    console.log('🌐 Executing physical vector positioning over the primary network display component...');
+    logger.info('TEST_EXECUTION', 'NETWORK_INIT', 'Executing physical vector positioning over the primary network display component...');
 
     await page.waitForLoadState('networkidle').catch(() => { });
     await page.waitForTimeout(2000);
@@ -148,26 +149,26 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     const arrowTrigger = OnboardingPageRegistry.networkPickerMenu(page).first();
     await arrowTrigger.waitFor({ state: 'visible', timeout: 15000 });
     // Explode dropdown layout options cleanly via pure pointer hit
-    await arrowTrigger.click({ force: true });
-    console.log('👇 Network dropdown expansion dispatched. Syncing local list states...');
+    await arrowTrigger.click();
+    logger.info('TEST_EXECUTION', 'NETWORK_DROPDOWN', 'Network dropdown expansion dispatched. Syncing local list states...');
     await page.waitForTimeout(2000);
 
     // Dynamic verification checkpoint capture
     await page.screenshot({ path: 'network_dropdown_check.png' });
-    console.log('📸 Visual telemetry recorded to project root file: network_dropdown_check.png');
-
-    console.log('🔍 Locating advanced testnet display semantic toggles...');
+    logger.info('TEST_EXECUTION', 'SCREENSHOT', 'Visual telemetry recorded to project root file: network_dropdown_check.png');
+    logger.info('TEST_EXECUTION', 'NETWORK_TOGGLE', 'Locating advanced testnet display semantic toggles...');
     const toggleSwitch = OnboardingPageRegistry.globalTestnetToggle(page).first();
     await toggleSwitch.waitFor({ state: 'attached', timeout: 5000 });
     await toggleSwitch.scrollIntoViewIfNeeded();
     await page.waitForTimeout(500);
 
+
     // Toggle network threshold visibility state
     await toggleSwitch.click({ force: true });
-    console.log('🔄 Global network visibility thresholds mutated.');
+    logger.info('TEST_EXECUTION', 'NETWORK_MUTATE', 'Global network visibility thresholds mutated.');
     await page.waitForTimeout(1500);
 
-    console.log('🎯 Pining specific Sepolia target coordinates inside the expanded layout view...');
+    logger.info('TEST_EXECUTION', 'NETWORK_SELECT', 'Pining specific Sepolia target coordinates inside the expanded layout view...');
     const targetCard = OnboardingPageRegistry.sepoliaNetworkCard(page);
     await targetCard.waitFor({ state: 'attached', timeout: 5000 });
     await targetCard.scrollIntoViewIfNeeded();
@@ -175,6 +176,6 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
 
     //--- Milestone 7: Final Synchronization & State Persistence ---
     await page.waitForTimeout(2000);
-    console.log('🏁 State tree tracking hardened successfully. Closing storage context channels...');
+    logger.info('TEST_EXECUTION', 'FINALIZE', 'State tree tracking hardened successfully. Closing storage context channels...');
     await context.close();
 });

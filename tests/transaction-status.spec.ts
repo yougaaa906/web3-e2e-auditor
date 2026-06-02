@@ -11,8 +11,9 @@
  */
 
 import { expect } from '@playwright/test';
-import { test } from './fixtures/connectedWalletFixtures'; // Enforce strict usage of our authenticated cloud-native fixture container
+import { test } from './fixtures/connectedWalletFixtures';
 import { verifyTxStatusViaRPC, getBalanceViaRPC } from '../utils/ChainHelper';
+import { logger } from '../utils/logger';
 
 test.describe('Uniswap V3 On-Chain Transaction Status Auditing Matrix', () => {
 
@@ -34,11 +35,11 @@ test.describe('Uniswap V3 On-Chain Transaction Status Auditing Matrix', () => {
         const swapAmountWei = BigInt("5000000000000000"); // Standard mock token payload: 0.005 ETH mapped in Wei
 
         // --- Milestone 0: Extract Pre-execution Baseline Ledger States ---
-        console.log(`📡 [Spec-Audit] Querying initial RPC ledger account balance for target user address: ${userAddress}`);
+        logger.info('RPC_QUERY', 'LEDGER_PRE', `Querying initial RPC ledger account balance for target user address: ${userAddress}`);
         const balanceBefore = await getBalanceViaRPC(userAddress);
 
         // --- Milestone 1: Client Interaction Layer Ingestion ---
-        console.log('🛡️ [Spec-Pipeline] Identity binding and testnet thresholds secured upstream. Entering trade form matrix...');
+        logger.info('SWAP_FLOW', 'INIT', 'Identity binding and testnet thresholds secured upstream. Entering trade form matrix...');
 
         // Directly trigger the input allocation and pricing quote calculation loops inside the DApp layout frame
         await swapPage.executeSwap();
@@ -55,7 +56,7 @@ test.describe('Uniswap V3 On-Chain Transaction Status Auditing Matrix', () => {
         // This defeats browser-level dynamic process background tab throttling, forcing immediate DOM rendering loops 
         // to emit active visibility hooks for volatile notification alerts.
         await page.bringToFront();
-        console.log('🌍 [Spec-Pipeline] Wallet signature broadcasted. Re-activating Client DApp viewport to front immediately.');
+        logger.info('SWAP_FLOW', 'VIEWPORT_FOCUS', 'Wallet signature broadcasted. Re-activating Client DApp viewport to front immediately.');
 
         // --- Milestone 5: Intercept Application UI Broadcast Acknowledgments ---
         const dappResponse = await swapPage.waitForDAppResponse();
@@ -66,10 +67,10 @@ test.describe('Uniswap V3 On-Chain Transaction Status Auditing Matrix', () => {
         // directly from DOM attributes, eliminating absolute-path hardcoding and sudden panel self-destruction anomalies.
         const mmFullPage = await mmPage.openMetaMaskHome();
         const txHash = await mmPage.getLatestTransactionHash(mmFullPage);
-        console.log(`🔑 [Spec-Pipeline] Masterfully brought back hash payload from DOM attributes: ${txHash}`);
+        logger.info('RPC_QUERY', 'TX_HASH', `Masterfully brought back hash payload from DOM attributes: ${txHash}`);
 
         // --- Milestone 7: Direct Out-of-Band RPC Execution Check ---
-        console.log('🔍 [Spec-Audit] Polling remote JSON-RPC nodes to parse receipt code states and extract gas billing details...');
+        logger.info('RPC_QUERY', 'TX_VERIFY', 'Polling remote JSON-RPC nodes to parse receipt code states and extract gas billing details...');
         const txStatus = await verifyTxStatusViaRPC(txHash);
 
         // --- Milestone 8: Financial Forensic Audit & Complete Statement Reconciliation ---
@@ -79,11 +80,11 @@ test.describe('Uniswap V3 On-Chain Transaction Status Auditing Matrix', () => {
         const actualSpent = balanceBefore - balanceAfter;
         const expectedSpent = swapAmountWei + txStatus.totalGasFee;
 
-        console.log(`📊 --- Post-Execution Forensic Audit Statement Report ---`);
-        console.log(`💰 Initial Balance Ledger: ${balanceBefore.toString()} Wei`);
-        console.log(`💰 Final Balance Ledger:   ${balanceAfter.toString()} Wei`);
-        console.log(`💸 Real Expenditure Delta: ${actualSpent.toString()} Wei`);
-        console.log(`⛽ Expected Bill Invoice (Payload + Gas): ${expectedSpent.toString()} Wei`);
+        logger.info('SECURITY_AUDIT', 'FORENSIC_REPORT', 'Post-Execution Forensic Audit Statement Report');
+        logger.debug('SECURITY_AUDIT', 'FORENSIC_DATA', `Initial Balance Ledger: ${balanceBefore.toString()} Wei`);
+        logger.debug('SECURITY_AUDIT', 'FORENSIC_DATA', `Final Balance Ledger: ${balanceAfter.toString()} Wei`);
+        logger.debug('SECURITY_AUDIT', 'FORENSIC_DATA', `Real Expenditure Delta: ${actualSpent.toString()} Wei`);
+        logger.debug('SECURITY_AUDIT', 'FORENSIC_DATA', `Expected Bill Invoice (Payload + Gas): ${expectedSpent.toString()} Wei`);
 
         // 🛡️ Critical Security Assertion Matrix: Three-way Cryptographic Reconciliation
         // 1. Transaction Confirmation Status: Settle blockchain state parameters confirm successful ingestion.
@@ -93,6 +94,6 @@ test.describe('Uniswap V3 On-Chain Transaction Status Auditing Matrix', () => {
         // 3. Absolute Mathematical Balance: Ensure live on-chain balance changes precisely match bill statements down to a single Wei.
         expect(actualSpent, '❌ CRITICAL FINANCIAL ALARM: Absolute balance expenditure delta mismatches expected bill invoice parameters! Leakage detected.').toBe(expectedSpent);
 
-        console.log('🏆 [Spec-Audit] SUCCESS! Front-end UI flows, decentralized ledger states, and forensic accounts are in absolute alignment!');
+        logger.info('SECURITY_AUDIT', 'FINAL_PASS', 'SUCCESS! Front-end UI flows, decentralized ledger states, and forensic accounts are in absolute alignment!');
     });
 });
