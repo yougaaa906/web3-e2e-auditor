@@ -12,6 +12,7 @@
 import { type Page, type Locator } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { CONFIG } from '../../config/config';
+import { logger } from '../../utils/logger';
 
 export class MetaMaskPage extends BasePage {
     // ==================================================
@@ -85,7 +86,7 @@ export class MetaMaskPage extends BasePage {
      * @param {string} [password] - Decryption credentials passphrase (Defaults to process.env.WALLET_PASSWORD).
      */
     async unlockWallet(handle: Page, password?: string) {
-        console.log('🔓 [Vault-Auth] Initiating provider decryption sequence...');
+        logger.info('WALLET_FLOW', 'VAULT_UNLOCK', 'Initiating provider decryption sequence...');
         const walletPassword = password || process.env.WALLET_PASSWORD || '';
 
         if (!walletPassword) {
@@ -104,12 +105,12 @@ export class MetaMaskPage extends BasePage {
                     await this.elemClick(this.unlockSubmitButton(handle), 'Click decryption submit button');
                 }
             } catch (e) {
-                console.log('💡 [Vault-Auth] Decryption submission handled via input hooks; submission button bypassed safely.');
+                logger.info('WALLET_FLOW', 'VAULT_BYPASS', 'Decryption submission handled via input hooks; submission button bypassed safely.');
             }
 
-            console.log('✅ [Vault-Auth] Extension decryption complete; sandbox unlocked.');
+            logger.info('WALLET_FLOW', 'VAULT_SUCCESS', 'Extension decryption complete; sandbox unlocked.');
         } catch (error) {
-            console.error('❌ [Vault-Auth] Extension decryption failed:', error);
+            logger.error('WALLET_FLOW', 'VAULT_ERROR', 'Extension decryption failed: ' + error);
             throw error;
         }
     }
@@ -123,7 +124,7 @@ export class MetaMaskPage extends BasePage {
      * @returns {Promise<void>} Resolves once peer channel handshake status consolidates at EVM level.
      */
     async connectWallet(handle: Page): Promise<void> {
-        console.log('🔓 [Handshake-Pipeline] Active popup frame trapped. Realigning multichain threshold matrices...');
+        logger.info('WALLET_FLOW', 'HANDSHAKE_INIT', 'Active popup frame trapped. Realigning multichain threshold matrices...');
 
         // Yield execution thread line to ensure React virtual layout components render completely
         await handle.waitForLoadState('networkidle').catch(() => { });
@@ -135,42 +136,42 @@ export class MetaMaskPage extends BasePage {
 
             if (await editBtn.isVisible({ timeout: 4000 })) {
                 await editBtn.click({ force: true });
-                console.log('📝 [Handshake-Step-1] Target multi-instance collision bypassed. Entered network modifier array.');
+                logger.info('WALLET_FLOW', 'HANDSHAKE_STEP1', 'Target multi-instance collision bypassed. Entered network modifier array.');
                 await handle.waitForTimeout(800);
 
                 // --- Phase 2: Inverted Ledger Selection Cleanups ---
                 const selectAllLabel = this.selectAllToggle(handle).first();
                 await selectAllLabel.scrollIntoViewIfNeeded();
                 await selectAllLabel.click({ force: true });
-                console.log('🔄 [Handshake-Step-2] Universal multi-chain inversion triggered. Active check states cleared.');
+                logger.info('WALLET_FLOW', 'HANDSHAKE_STEP2', 'Universal multi-chain inversion triggered. Active check states cleared.');
                 await handle.waitForTimeout(800);
 
                 // --- Phase 3: Cryptographic Target Pinning (Sepolia Injection) ---
-                console.log('🔍 [Handshake-Step-3] Pinning targeted Sepolia node coordinates inside layout list...');
+                logger.info('WALLET_FLOW', 'HANDSHAKE_STEP3', 'Pinning targeted Sepolia node coordinates inside layout list...');
                 const targetCheckbox = this.sepoliaCheckbox(handle).first();
 
                 // Enforce rigid registration bounds to absorb asynchronous DOM append latency
                 await targetCheckbox.waitFor({ state: 'attached', timeout: 5000 });
                 await targetCheckbox.scrollIntoViewIfNeeded();
                 await targetCheckbox.click({ force: true });
-                console.log('🎯 [Handshake-Step-3] Target checkbox successfully forced to checked state: Sepolia Network pinned.');
+                logger.info('WALLET_FLOW', 'HANDSHAKE_STEP3_PIN', 'Target checkbox successfully forced to checked state: Sepolia Network pinned.');
                 await handle.waitForTimeout(800);
 
                 // --- Phase 4: State Serialization Matrix Save ---
                 const updateBtn = this.networkUpdateBtn(handle).first();
                 await updateBtn.click({ force: true });
-                console.log('💾 [Handshake-Step-4] Mutated layout parameters serialized. Transmitting state to extension DB...');
+                logger.info('WALLET_FLOW', 'HANDSHAKE_STEP4', 'Mutated layout parameters serialized. Transmitting state to extension DB...');
                 await handle.waitForTimeout(1200);
             } else {
-                console.log('✨ [Handshake-Shield] Multichain permission shield absent; network threshold pre-cached or configuration bypassed.');
+                logger.info('WALLET_FLOW', 'HANDSHAKE_SHIELD', 'Multichain permission shield absent; network threshold pre-cached or configuration bypassed.');
             }
         } catch (err: any) {
-            console.error('❌ [Handshake-Error] CRITICAL AUTOPROVISIONING FAILURE: Multi-chain interception pipeline collapsed:', err.message);
+            logger.error('WALLET_FLOW', 'HANDSHAKE_ERROR', 'CRITICAL AUTOPROVISIONING FAILURE: Multi-chain interception pipeline collapsed: ' + err.message);
             throw err;
         }
 
         // --- Phase 5: Downstream Handshake Finalization (Connect Bombardment) ---
-        console.log('🤝 [Handshake-Step-5] Launching fallback handler matrix to dispatch transaction channel permission...');
+        logger.info('WALLET_FLOW', 'HANDSHAKE_STEP5', 'Launching fallback handler matrix to dispatch transaction channel permission...');
 
         let connected = false;
         const potentialTriggers = this.handshakeSubmitSelectors(handle);
@@ -180,7 +181,7 @@ export class MetaMaskPage extends BasePage {
                 if (await selector.isVisible({ timeout: 2000 })) {
                     await selector.click({ force: true });
                     connected = true;
-                    console.log(`🏆 [Handshake-Success] Peer channel authorized! Handshake successfully established with Client DApp.`);
+                    logger.info('WALLET_FLOW', 'HANDSHAKE_SUCCESS', 'Peer channel authorized! Handshake successfully established with Client DApp.');
                     break;
                 }
             } catch (e) {
@@ -217,7 +218,7 @@ export class MetaMaskPage extends BasePage {
      * @returns {Promise<{ originWalletBalance: string, sendAmount: string, gasPrice: string }>} Initial transaction metrics.
      */
     async initiateSwap(handle: Page) {
-        console.log('⏳ [Simulation-Telemetry] Awaiting transaction parameters to compile inside provider UI...');
+        logger.info('WALLET_FLOW', 'SIMULATION_INIT', 'Awaiting transaction parameters to compile inside provider UI...');
 
         await this.sendAmountPill(handle).waitFor({ state: 'visible', timeout: 30000 });
         await this.receiveAssetPill(handle).waitFor({ state: 'visible', timeout: 30000 });
@@ -230,13 +231,13 @@ export class MetaMaskPage extends BasePage {
         try {
             originWalletBalance = await this.walletBalanceDisplay(handle).innerText();
         } catch (e) {
-            console.log('⚠️ [Simulation-Telemetry] Current active balance inaccessible inside standard signature panels');
+            logger.warn('WALLET_FLOW', 'SIMULATION_WARN', 'Current active balance inaccessible inside standard signature panels');
             originWalletBalance = 'N/A';
         }
 
-        console.log(`💰 [Simulation-Telemetry] Baseline Balance: ${originWalletBalance}`);
-        console.log(`📤 [Simulation-Telemetry] Outbound Payload Amount: ${sendAmount}`);
-        console.log(`⛽ [Simulation-Telemetry] Network Gas Premium: ${gasPrice}`);
+        logger.debug('WALLET_FLOW', 'SIMULATION_DATA', 'Baseline Balance: ' + originWalletBalance);
+        logger.debug('WALLET_FLOW', 'SIMULATION_DATA', 'Outbound Payload Amount: ' + sendAmount);
+        logger.debug('WALLET_FLOW', 'SIMULATION_DATA', 'Network Gas Premium: ' + gasPrice);
 
         return { originWalletBalance, sendAmount, gasPrice };
     }
@@ -246,17 +247,17 @@ export class MetaMaskPage extends BasePage {
      * @param {Page} handle - Target extension window handle.
      */
     async confirmSwap(handle: Page) {
-        console.log('🔄 [Signature-Lock] Positioning pointers over final signature components...');
+        logger.info('WALLET_FLOW', 'SIGNATURE_INIT', 'Positioning pointers over final signature components...');
         let targetPage = handle;
 
         if (!handle || handle.isClosed()) {
-            console.log('⚠️ [Signature-Lock] Signature handle destroyed. Attempting context reconstruction loops...');
+            logger.warn('WALLET_FLOW', 'SIGNATURE_WARN', 'Signature handle destroyed. Attempting context reconstruction loops...');
             const pages = handle.context().pages();
             const walletPage = pages.find(p => p.url().includes('chrome-extension://') && p.url().includes('confirm-transaction'));
 
             if (walletPage) {
                 targetPage = walletPage;
-                console.log('✅ [Signature-Lock] Successfully re-acquired provider context hooks');
+                logger.info('WALLET_FLOW', 'SIGNATURE_RECOVER', 'Successfully re-acquired provider context hooks');
             } else {
                 throw new Error('❌ Critical: Provider signature context destroyed; recovery array exhausted.');
             }
@@ -265,13 +266,13 @@ export class MetaMaskPage extends BasePage {
         try {
             await this.confirmSwapButton(targetPage).click({ force: true, timeout: 10000 });
             await targetPage.waitForEvent('close', { timeout: 3000 }).catch(() => { });
-            console.log('✅ [Signature-Lock] Signature click dispatched successfully; transaction broadcasted.');
+            logger.info('WALLET_FLOW', 'SIGNATURE_SUCCESS', 'Signature click dispatched successfully; transaction broadcasted.');
         } catch (e) {
             const errorMessage = e instanceof Error ? e.message : String(e);
             if (errorMessage.includes('Target closed') || errorMessage.includes('Session closed')) {
-                console.log('💡 [Signature-Lock] Provider window successfully completed self-destruction routines.');
+                logger.info('WALLET_FLOW', 'SIGNATURE_CLOSED', 'Provider window successfully completed self-destruction routines.');
             } else {
-                console.error('❌ [Signature-Lock] Critical failure dispatched upon final confirmation click:', e);
+                logger.error('WALLET_FLOW', 'SIGNATURE_ERROR', 'Critical failure dispatched upon final confirmation click: ' + e);
                 throw e;
             }
         }
@@ -284,14 +285,14 @@ export class MetaMaskPage extends BasePage {
      * Handles transient window resuscitations, blind-signing speed optimizations, and error interceptions.
      */
     async initiateAndConfirmSwap(handle: Page) {
-        console.log('⏳ [Pipeline-Combo] Executing high-resilience signature pipeline combo (Armor Edition)...');
+        logger.info('WALLET_FLOW', 'PIPELINE_INIT', 'Executing high-resilience signature pipeline combo (Armor Edition)...');
         let targetPage = handle;
 
         // ==========================================
         // 🛡️ Armor Layer 1: Popup Window Resuscitator
         // ==========================================
         if (!handle || handle.isClosed()) {
-            console.log('⚠️ [Pipeline-Combo] Active panel context unmounted. Launching reconstructor tracking loops...');
+            logger.warn('WALLET_FLOW', 'PIPELINE_WARN', 'Active panel context unmounted. Launching reconstructor tracking loops...');
             let walletPage: Page | undefined;
             const context = this.page.context();
 
@@ -304,7 +305,7 @@ export class MetaMaskPage extends BasePage {
 
                 if (walletPage) {
                     targetPage = walletPage;
-                    console.log(`✅ [Pipeline-Combo] Recovery loop index ${i + 1}: Intercepted active recreated popup context.`);
+                    logger.info('WALLET_FLOW', 'PIPELINE_RECOVER', 'Recovery loop index ' + (i + 1) + ': Intercepted active recreated popup context.');
                     break;
                 }
                 await this.page.waitForTimeout(500);
@@ -318,7 +319,7 @@ export class MetaMaskPage extends BasePage {
         // ==========================================
         // ⚡ Armor Layer 2: Speed Optimization (Blind Sign Probe)
         // ==========================================
-        console.log('🔍 [Pipeline-Combo] Locating signature dispatch components quickly...');
+        logger.info('WALLET_FLOW', 'PIPELINE_FIND', 'Locating signature dispatch components quickly...');
         await this.confirmSwapButton(targetPage).waitFor({ state: 'visible', timeout: 15000 });
 
         let sendAmount = 'N/A';
@@ -336,13 +337,13 @@ export class MetaMaskPage extends BasePage {
                 originWalletBalance = await this.walletBalanceDisplay(targetPage).innerText();
             }
         } catch (e) {
-            console.log('💡 [Pipeline-Combo] Asset parameters extraction bypassed to mitigate transaction payload expiration risks.');
+            logger.info('WALLET_FLOW', 'PIPELINE_BYPASS', 'Asset parameters extraction bypassed to mitigate transaction payload expiration risks.');
         }
 
-        console.log(`💰 [Pipeline-Combo] Baseline Balance: ${originWalletBalance}`);
-        console.log(`📤 [Pipeline-Combo] Outbound Payload Amount: ${sendAmount}`);
-        console.log(`⛽ [Pipeline-Combo] Network Gas Premium: ${gasPrice}`);
-        console.log('🔍 [Pipeline-Combo] Executing critical velocity signature clicks...');
+        logger.debug('WALLET_FLOW', 'PIPELINE_DATA', 'Baseline Balance: ' + originWalletBalance);
+        logger.debug('WALLET_FLOW', 'PIPELINE_DATA', 'Outbound Payload Amount: ' + sendAmount);
+        logger.debug('WALLET_FLOW', 'PIPELINE_DATA', 'Network Gas Premium: ' + gasPrice);
+        logger.info('WALLET_FLOW', 'PIPELINE_EXEC', 'Executing critical velocity signature clicks...');
 
         // ==========================================
         // 👊 Armor Layer 3: Forced Dispatches & False Failure Traps
@@ -350,13 +351,13 @@ export class MetaMaskPage extends BasePage {
         try {
             await this.confirmSwapButton(targetPage).click({ force: true, timeout: 5000 });
             await targetPage.waitForEvent('close', { timeout: 3000 }).catch(() => { });
-            console.log('✅ [Pipeline-Combo] Signature click dispatched successfully; transaction broadcasted.');
+            logger.info('WALLET_FLOW', 'PIPELINE_SUCCESS', 'Signature click dispatched successfully; transaction broadcasted.');
         } catch (e) {
             const errorMessage = e instanceof Error ? e.message : String(e);
             if (errorMessage.includes('Target closed') || errorMessage.includes('Session closed')) {
-                console.log('✅ [Pipeline-Combo] Provider window completed standard clean self-destruction loops.');
+                logger.info('WALLET_FLOW', 'PIPELINE_CLOSED', 'Provider window completed standard clean self-destruction loops.');
             } else {
-                console.error('❌ [Pipeline-Combo] Critical failure dispatched upon global transaction sign:', e);
+                logger.error('WALLET_FLOW', 'PIPELINE_ERROR', 'Critical failure dispatched upon global transaction sign: ' + e);
                 throw e;
             }
         }
@@ -369,7 +370,7 @@ export class MetaMaskPage extends BasePage {
      * @note Cryptographic constraints require Priority Fees to be committed BEFORE Base Fees to dodge valuation rule errors.
      */
     async updateGasFee(handle: Page, options?: { baseFee?: string; priorityFee?: string }) {
-        console.log('⛽ [Gas-Orchestration] Modifying execution context gas parameters...');
+        logger.info('WALLET_FLOW', 'GAS_INIT', 'Modifying execution context gas parameters...');
 
         const baseFeeValue = options?.baseFee || CONFIG.GAS.LOW_BASE_FEE;
         const priorityFeeValue = options?.priorityFee || CONFIG.GAS.LOW_PRIORITY_FEE;
@@ -391,11 +392,11 @@ export class MetaMaskPage extends BasePage {
             await this.elemFill(this.baseFeeInput(handle), baseFeeValue, 'Inject underpriced network base parameters');
 
             await this.elemClick(this.saveGasButton(handle), 'Commit custom gas modifications');
-            console.log('✅ [Gas-Orchestration] Fee properties saved and updated successfully inside wallet.');
+            logger.info('WALLET_FLOW', 'GAS_SUCCESS', 'Fee properties saved and updated successfully inside wallet.');
 
             return this;
         } catch (error) {
-            console.error('❌ [Gas-Orchestration] Failed to override transaction gas parameters matrix:', error);
+            logger.error('WALLET_FLOW', 'GAS_ERROR', 'Failed to override transaction gas parameters matrix: ' + error);
             throw error;
         }
     }
@@ -405,7 +406,7 @@ export class MetaMaskPage extends BasePage {
      * Resolves via block explorer external redirection parameters to safeguard data fidelity against brittle front-end DOM states.
      */
     async getLatestTransactionHash(handle: Page): Promise<string> {
-        console.log('⏳ [Front-Attack] Synchronizing unsealed MetaMask active view states...');
+        logger.info('WALLET_FLOW', 'TX_HASH_INIT', 'Synchronizing unsealed MetaMask active view states...');
 
         try {
             /**
@@ -415,7 +416,7 @@ export class MetaMaskPage extends BasePage {
              * Enforcing 'networkidle' ensures local state ledger alignment before driving downstream UI events.
              */
             await handle.waitForLoadState('networkidle', { timeout: 10000 })
-                .catch(() => console.log('⚠️ [Network-Defense] Network not fully idle within window thresholds; forcing continuation pipeline.'));
+                .catch(() => logger.warn('WALLET_FLOW', 'TX_HASH_WARN', 'Network not fully idle within window thresholds; forcing continuation pipeline.'));
 
             /**
              * Architectural Guardrail 2: Defensive interception for probability-triggered security modals.
@@ -424,9 +425,9 @@ export class MetaMaskPage extends BasePage {
              */
             const gotItButton = handle.getByRole('button', { name: /^got it$/i }).first();
             if (await gotItButton.isVisible({ timeout: 1500 }).catch(() => false)) {
-                console.log('🛡️ [MetaMask-Guard] Intercepted native security overlay. Dispatching dynamic click bypass...');
+                logger.info('WALLET_FLOW', 'TX_HASH_GUARD', 'Intercepted native security overlay. Dispatching dynamic click bypass...');
                 await gotItButton.click({ force: true });
-                console.log('✅ [MetaMask-Guard] Overlay dismissed safely. Pipeline execution loop restored.');
+                logger.info('WALLET_FLOW', 'TX_HASH_GUARD_SUCCESS', 'Overlay dismissed safely. Pipeline execution loop restored.');
             }
 
             // 1. Pivot to Activity Stream Tab View
@@ -439,7 +440,7 @@ export class MetaMaskPage extends BasePage {
                 .or(handle.locator('.activity-list-item').first());
             await firstTxItem.waitFor({ state: 'visible', timeout: 5000 });
             await firstTxItem.click({ force: true, position: { x: 40, y: 15 } });
-            console.log('🔓 [Front-Attack] Drawer row expanded.');
+            logger.info('WALLET_FLOW', 'TX_HASH_EXPAND', 'Drawer row expanded.');
 
             /**
              * Architectural Guardrail 3: State-Driven DOM Content Convergence Verification.
@@ -457,10 +458,10 @@ export class MetaMaskPage extends BasePage {
              * Playwright triggers instant execution progression the exact millisecond the element arrives in a paintable state.
              */
             await explorerButton.waitFor({ state: 'visible', timeout: 30000 });
-            console.log('🎯 [Front-Attack] Locked target: View on block explorer button.');
+            logger.info('WALLET_FLOW', 'TX_HASH_TARGET', 'Locked target: View on block explorer button.');
 
             // 4. Capture Inbound Navigation Targets via Core Event Loop Intercepts
-            console.log('⚡ [Front-Attack] Spawning browser context event trap...');
+            logger.info('WALLET_FLOW', 'TX_HASH_CAPTURE', 'Spawning browser context event trap...');
             const browserContext = handle.context();
 
             const [etherscanPage] = await Promise.all([
@@ -470,7 +471,7 @@ export class MetaMaskPage extends BasePage {
 
             // 5. Instantly Mine Volatile URL Address Assets and Execute Forced Context Disposal
             const rawUrl = etherscanPage.url();
-            console.log(`🌍 [Front-Attack] Captured raw URL address on first flight: ${rawUrl}`);
+            logger.info('WALLET_FLOW', 'TX_HASH_URL', 'Captured raw URL address on first flight: ' + rawUrl);
             await etherscanPage.close().catch(() => { });
 
             // 6. Decode Cryptographic Payload 66-character Strings via Regex
@@ -482,7 +483,7 @@ export class MetaMaskPage extends BasePage {
             return hashMatch[1];
 
         } catch (error: any) {
-            console.error('❌ [Front-Attack-Error] CRITICAL ENGINE EXCEPTION IN FRONT-ATTACK FLOW:', error.message);
+            logger.error('WALLET_FLOW', 'TX_HASH_ERROR', 'CRITICAL ENGINE EXCEPTION IN FRONT-ATTACK FLOW: ' + error.message);
             throw error;
         }
     }
