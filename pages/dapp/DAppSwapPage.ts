@@ -13,6 +13,7 @@
 import type { Page, Locator } from '@playwright/test';
 import { BasePage } from '../BasePage';
 import { CONFIG } from '../../config/config';
+import { logger } from '../../utils/logger';
 
 export class DAppSwapPage extends BasePage {
     // ==========================================
@@ -59,19 +60,19 @@ export class DAppSwapPage extends BasePage {
         sellAmount: string = CONFIG.SWAP_DATA.SELL_AMOUNT,
         token: string = CONFIG.SWAP_DATA.TARGET_TOKEN
     ): Promise<void> {
-        console.log(`[Form] Initiating Swap form workflow: ${sellAmount} ETH -> ${token}`);
+        logger.info('SWAP_FLOW', 'FORM_INIT', `Initiating Swap form workflow: ${sellAmount} ETH -> ${token}`);
 
         // Dynamic Routing Verification: Validate layout constraints align to the /swap route
         if (!this.page.url().includes('swap')) {
             await this.pageGoto(`${CONFIG.BASE_URL}/swap`);
             await this.waitTimeout(3000); // Essential buffer enabling browser state to settle down cleanly
-            console.log('[Form] Targeted Swap route loaded successfully');
+            logger.info('SWAP_FLOW', 'ROUTE_LOAD', 'Targeted Swap route loaded successfully');
         }
 
         // ====================================================================================
         // 🛡️ Phase 1: Target Token Resolution Sequence (Armored Overrides Implemented)
         // ====================================================================================
-        console.log('[Step 1] Activating vendor asset modal selection overlay');
+        logger.info('SWAP_FLOW', 'TOKEN_SELECT', 'Activating vendor asset modal selection overlay');
         await this.waitElemVisible(this.selectTokenBtn, 'Token selector button');
         await this.elemClick(this.selectTokenBtn, 'Trigger vendor asset selection overlay');
 
@@ -80,7 +81,7 @@ export class DAppSwapPage extends BasePage {
 
         /**
          * Architectural Guardrail: Human-like Keystroke Simulation Injection.
-         * Direct .fill() mutations bypass native element keyup/keydown event listener streams, 
+         * Direct .fill() mutations bypass native element keyup/keydown event listener streams,
          * triggering race condition drop-outs inside modern Virtual DOM debounce handlers during dense test sequences.
          * Enforcing focus orientation -> dynamic wipe -> pressSequentially guarantees complete hook settlement.
          */
@@ -90,7 +91,7 @@ export class DAppSwapPage extends BasePage {
 
         // Dispatch sequential string inputs with 150ms delays to natively trigger upstream Subgraph queries
         await this.searchTokenInput.pressSequentially(token, { delay: 150 });
-        console.log(`⌨️ [Token-Selector] Human-like keystroke arrays dispatched into search block with 150ms delays.`);
+        logger.debug('SWAP_FLOW', 'TOKEN_KEYSTROKE', 'Human-like keystroke arrays dispatched into search block with 150ms delays.');
 
         /**
          * Multi-pronged Resilient Locator Array.
@@ -101,18 +102,18 @@ export class DAppSwapPage extends BasePage {
             .or(this.page.locator('[data-testid="token-option-WETH"]').first())
             .or(this.page.locator('.token-item:has-text("WETH")').first());
 
-        console.log(`⏳ [Token-Selector] Awaiting visual layout convergence for option node: ${token}`);
+        logger.info('SWAP_FLOW', 'TOKEN_WAIT', `Awaiting visual layout convergence for option node: ${token}`);
         await wethOption.waitFor({ state: 'visible', timeout: 15000 });
         await wethOption.click({ force: true });
-        console.log('[Step 1] Targeted asset selected and validated');
+        logger.info('SWAP_FLOW', 'TOKEN_SELECTED', 'Targeted asset selected and validated');
         // ====================================================================================
 
         // Phase 2: Intercept Compliance/Risk Modals (First-time deployment edge case profiles)
-        console.log('[Step 2] Speculative parsing: handling high-risk token disclaimer overlays');
+        logger.info('SWAP_FLOW', 'COMPLIANCE_CHECK', 'Speculative parsing: handling high-risk token disclaimer overlays');
         await this.handleTokenWarningModal();
 
         // Phase 3: Outbound Payload Injection
-        console.log('[Step 3] Dispatching sell amount value properties');
+        logger.info('SWAP_FLOW', 'AMOUNT_INPUT', 'Dispatching sell amount value properties');
 
         // 1. Forcefully click the input field to secure browser pointer focus lock
         await this.sellAmountInput.click({ force: true });
@@ -122,19 +123,19 @@ export class DAppSwapPage extends BasePage {
         await this.waitTimeout(200);
 
         await this.sellAmountInput.pressSequentially(sellAmount, { delay: 100 });
-        console.log(`⌨️ [Form-Input] Amount payload [${sellAmount}] sequentially typed with stable event hooks.`);
+        logger.debug('SWAP_FLOW', 'AMOUNT_TYPED', `Amount payload [${sellAmount}] sequentially typed with stable event hooks.`);
         // 💡 Core Paradigm Shift: Manually dispatch input/change events to the DOM node.
         // Modern Virtual DOM architectures (e.g., React/Next.js) map states using custom element hooks.
         // Standard Playwright driver .fill() routines occasionally fail to trigger the remote pricing calculations.
         await this.triggerInputEvent(this.sellAmountInput, 'Sell quantity input node');
-        console.log('[Step 3] Value successfully bound; front-end event listeners triggered');
+        logger.info('SWAP_FLOW', 'AMOUNT_BOUND', 'Value successfully bound; front-end event listeners triggered');
 
         // Phase 4: Async Pricing Quote Convergence Checks
-        console.log('[Step 4] Polling: Awaiting blockchain aggregators to settle optimal routing paths');
+        logger.info('SWAP_FLOW', 'QUOTE_WAIT', 'Polling: Awaiting blockchain aggregators to settle optimal routing paths');
         await this.waitForBuyAmount();
 
         // Phase 5: Dynamic State Verification for Review Action Components
-        console.log('[Step 5] Defensively awaiting review button confirmation transitions');
+        logger.info('SWAP_FLOW', 'REVIEW_WAIT', 'Defensively awaiting review button confirmation transitions');
         await this.reviewBtn.waitFor({ state: 'visible', timeout: 30000 });
 
         // Polling Probe: Insulates execution loops against severe JSON-RPC quote request lags
@@ -143,10 +144,10 @@ export class DAppSwapPage extends BasePage {
         while (Date.now() - startTime < maxWaitTime) {
             const isEnabled = await this.reviewBtn.isEnabled();
             if (isEnabled) {
-                console.log('[Step 5] Inbound quote parameters validated; review button active');
+                logger.info('SWAP_FLOW', 'REVIEW_ENABLED', 'Inbound quote parameters validated; review button active');
                 break;
             }
-            console.log('[Step 5] Remote blockchain metrics still compiling. Retrying in 1s...');
+            logger.debug('SWAP_FLOW', 'REVIEW_POLL', 'Remote blockchain metrics still compiling. Retrying in 1s...');
             await this.waitTimeout(1000);
         }
 
@@ -154,20 +155,20 @@ export class DAppSwapPage extends BasePage {
         // Complex interactions under extension contexts generate unique pointer event handles.
         // Test.step encapsulation occasionally triggers localized extension isolation sandboxes, causing unexpected panel collapse.
         await this.reviewBtn.click({ timeout: 15000 });
-        console.log('[Step 5] Review confirmation click successfully executed');
+        logger.info('SWAP_FLOW', 'REVIEW_CLICK', 'Review confirmation click successfully executed');
 
         // Phase 6: Multi-pronged Resilience Checking for Confirmation Modals
-        console.log('[Step 6] Intercepting transactional review confirmation dialog nodes');
+        logger.info('SWAP_FLOW', 'DIALOG_WAIT', 'Intercepting transactional review confirmation dialog nodes');
         try {
             await this.dialogContent.waitFor({ state: 'visible', timeout: 10000 });
-            console.log('[Step 6] Strategy A: Confirmation locked via explicit WAI-ARIA role="dialog"');
+            logger.info('SWAP_FLOW', 'DIALOG_FOUND', 'Strategy A: Confirmation locked via explicit WAI-ARIA role="dialog"');
         } catch {
-            console.log('[Step 6] Strategy A missed. Falling back to Strategy B: Fuzzy tracking using text tokens');
+            logger.info('SWAP_FLOW', 'DIALOG_FALLBACK', 'Strategy A missed. Falling back to Strategy B: Fuzzy tracking using text tokens');
             await this.dialogContentText.waitFor({ state: 'visible', timeout: 10000 });
-            console.log('[Step 6] Strategy B settled successfully via contextual text identification');
+            logger.info('SWAP_FLOW', 'DIALOG_FOUND', 'Strategy B settled successfully via contextual text identification');
         }
 
-        console.log('[Form] Transaction review context compiled; handing over execution context to wallet signatures');
+        logger.info('SWAP_FLOW', 'FORM_COMPLETE', 'Transaction review context compiled; handing over execution context to wallet signatures');
     }
 
     /**
@@ -175,19 +176,19 @@ export class DAppSwapPage extends BasePage {
      * Ensures fluid UI states convert into valid pricing payloads before continuing assertions.
      */
     async waitForBuyAmount() {
-        console.log('[Wait] Auditing downstream pricing quote calculation conversions...');
+        logger.info('SWAP_FLOW', 'QUOTE_AUDIT', 'Auditing downstream pricing quote calculation conversions...');
         await this.waitElemVisible(this.buyAmountInput, 'Target conversion telemetry box');
 
         for (let i = 0; i < 20; i++) {
             const buyAmountValue = await this.buyAmountInput.inputValue().catch(() => '');
-            console.log(`[Wait] Sampling transaction conversion parameters: "${buyAmountValue}"`);
+            logger.debug('SWAP_FLOW', 'QUOTE_SAMPLE', `Sampling transaction conversion parameters: "${buyAmountValue}"`);
             if (buyAmountValue && buyAmountValue !== '0') {
-                console.log(`[Wait] Downstream pricing quote stabilized. Active value mapped: ${buyAmountValue}`);
+                logger.info('SWAP_FLOW', 'QUOTE_STABLE', `Downstream pricing quote stabilized. Active value mapped: ${buyAmountValue}`);
                 return;
             }
             await this.waitTimeout(500); // 500ms smooth step bounds to mitigate JSON-RPC endpoint concurrency pressure
         }
-        console.log('[Wait] Warning: Pricing quote failed to stabilize within specified lifecycle loops');
+        logger.warn('SWAP_FLOW', 'QUOTE_WARN', 'Pricing quote failed to stabilize within specified lifecycle loops');
     }
 
     /**
@@ -198,9 +199,9 @@ export class DAppSwapPage extends BasePage {
         try {
             await this.waitElemVisible(this.tokenWarningContinueBtn, 'Compliance waiver acknowledgment button');
             await this.elemClick(this.tokenWarningContinueBtn, 'Dismiss risk warnings');
-            console.log('[Modal] Compliance waiver dismissed successfully');
+            logger.info('SWAP_FLOW', 'MODAL_DISMISS', 'Compliance waiver dismissed successfully');
         } catch {
-            console.log('[Modal] Compliance waiver absent; continuing pipeline executions safely');
+            logger.info('SWAP_FLOW', 'MODAL_ABSENT', 'Compliance waiver absent; continuing pipeline executions safely');
         }
     }
 
@@ -209,16 +210,16 @@ export class DAppSwapPage extends BasePage {
      * @returns {Promise<{ popup: Page, hasDuplicateWarning: boolean }>} Wallet popup reference handles and intercept status.
      */
     async confirmAndGetWallet(): Promise<{ popup: Page; hasDuplicateWarning: boolean }> {
-        console.log('[Confirm] Locking execution terminal interaction triggers');
+        logger.info('SWAP_FLOW', 'CONFIRM_INIT', 'Locking execution terminal interaction triggers');
 
         await this.waitElemVisible(this.swapBtn, 'Global final Swap interaction button');
 
         const isEnabled = await this.swapBtn.isEnabled();
-        console.log(`[Confirm] Terminal trigger state diagnostics - Enabled: ${isEnabled ? 'True' : 'False'}`);
+        logger.info('SWAP_FLOW', 'CONFIRM_STATUS', `Terminal trigger state diagnostics - Enabled: ${isEnabled ? 'True' : 'False'}`);
 
         let clickBtn = this.swapBtn;
         if (!isEnabled) {
-            console.log('[Confirm] Main interaction button constrained by debounce; falling back to alternative localized selectors');
+            logger.info('SWAP_FLOW', 'CONFIRM_FALLBACK', 'Main interaction button constrained by debounce; falling back to alternative localized selectors');
             clickBtn = this.page.getByRole('button', { name: /Swap|Confirm/i });
             await clickBtn.waitFor({ state: 'visible', timeout: 5000 });
         }
@@ -231,21 +232,21 @@ export class DAppSwapPage extends BasePage {
         try {
             await this.duplicateWarningModal.waitFor({ state: 'visible', timeout: 3000 });
             hasDuplicateWarning = true;
-            console.log('[Confirm] Intercepted front-end duplicate transmission shields (Positive validation benchmark)');
+            logger.info('SWAP_FLOW', 'DUPLICATE_DETECTED', 'Intercepted front-end duplicate transmission shields (Positive validation benchmark)');
         } catch {
-            console.log('[Confirm] Front-end duplicate transmission shields stayed inactive');
+            logger.info('SWAP_FLOW', 'DUPLICATE_ABSENT', 'Front-end duplicate transmission shields stayed inactive');
         }
 
         // select browser wallet variants instantiate a shell layout (notification.html) before injecting runtime transaction routing hooks.
         // Immediate operational parsing prior to complete router stabilization breaks locator pointer arrays.
-        console.log(`[Confirm] Diagnostics - Captured wallet router path: ${popup.url()}`);
+        logger.info('SWAP_FLOW', 'POPUP_URL', `Diagnostics - Captured wallet router path: ${popup.url()}`);
         if (popup.url().includes('notification.html')) {
-            console.log('[Confirm] Active routing navigation shift detected. Suspending interaction vectors...');
+            logger.info('SWAP_FLOW', 'ROUTER_SHIFT', 'Active routing navigation shift detected. Suspending interaction vectors...');
             try {
                 await popup.waitForNavigation({ timeout: CONFIG.TIMEOUT.LONG });
-                console.log(`[Confirm] Internal router paths stabilized. Operational landing coordinates: ${popup.url()}`);
+                logger.info('SWAP_FLOW', 'ROUTER_STABLE', `Internal router paths stabilized. Operational landing coordinates: ${popup.url()}`);
             } catch {
-                console.log('[Confirm] Router paths static. Continuing within identical pointer vectors');
+                logger.info('SWAP_FLOW', 'ROUTER_STATIC', 'Router paths static. Continuing within identical pointer vectors');
             }
         }
 
@@ -257,21 +258,21 @@ export class DAppSwapPage extends BasePage {
      * @returns {Promise<{ isSuccess: boolean, message: string }>} Final transaction receipt status matrix.
      */
     async waitForDAppResponse(): Promise<{ isSuccess: boolean; message: string }> {
-        console.log('[Response] Activating post-broadcast receipt auditing pipelines...');
+        logger.info('SWAP_FLOW', 'RESPONSE_INIT', 'Activating post-broadcast receipt auditing pipelines...');
 
         // Phase 1: High-Speed Transient Loader Detection Loops
         try {
-            console.log('[Response] Phase 1: Evaluating transient loading structures via agile 3s tracking loops...');
+            logger.info('SWAP_FLOW', 'RESPONSE_PHASE1', 'Evaluating transient loading structures via agile 3s tracking loops...');
             await this.waitingModal.waitFor({ state: 'visible', timeout: 3000 });
-            console.log('[Response] Transient loading structures detected. Awaiting extraction and DOM unmounting routines...');
+            logger.info('SWAP_FLOW', 'RESPONSE_LOADER', 'Transient loading structures detected. Awaiting extraction and DOM unmounting routines...');
             await this.waitingModal.waitFor({ state: 'hidden', timeout: CONFIG.TIMEOUT.LONG });
-            console.log('[Response] Transient loaders unmounted; receipt successfully ingested by remote RPC nodes');
+            logger.info('SWAP_FLOW', 'RESPONSE_UNMOUNT', 'Transient loaders unmounted; receipt successfully ingested by remote RPC nodes');
         } catch {
-            console.log('[Response] Loader overlay absent (Rapid ingestion or component unmounting rules applied); merging directly to confirmation');
+            logger.info('SWAP_FLOW', 'RESPONSE_NO_LOADER', 'Loader overlay absent (Rapid ingestion or component unmounting rules applied); merging directly to confirmation');
         }
 
         // Phase 2: Persistent Broadcast Confirmation Interceptions
-        console.log('[Response] Phase 2: Initializing 60s resilient tracking for Transaction Submitted status alerts...');
+        logger.info('SWAP_FLOW', 'RESPONSE_PHASE2', 'Initializing 60s resilient tracking for Transaction Submitted status alerts...');
         await this.submittedToast.waitFor({ state: 'visible', timeout: 120000 });
 
         let successMessage = '';
@@ -281,7 +282,7 @@ export class DAppSwapPage extends BasePage {
             successMessage = 'Transaction Submitted'; // Fallback nomenclature for unstable DOM mutation profiles
         }
 
-        console.log(`[Response] On-chain reconciliation complete. Broadcast receipt generated: ${successMessage}`);
+        logger.info('SWAP_FLOW', 'RESPONSE_COMPLETE', `On-chain reconciliation complete. Broadcast receipt generated: ${successMessage}`);
         return { isSuccess: true, message: successMessage };
     }
 
