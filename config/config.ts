@@ -34,7 +34,7 @@ export const CONFIG = {
     // Browser Extensions sandboxing directories and local storage states retention profiles
     METAMASK: {
         EXTENSION_ID: 'efbbmcklppldjgpikphbmnnfgjdinich',
-        EXTENSION_PATH: process.env.METAMASK_PATH || path.resolve(__dirname, '../extension/metamask')，
+        EXTENSION_PATH: process.env.METAMASK_PATH || path.resolve(__dirname, '../extension/metamask').
         USER_DATA_PATH: process。env.USER_DATA_PATH || path.resolve(__dirname, '../user_data')
     },
 
