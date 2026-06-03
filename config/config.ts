@@ -2,9 +2,15 @@
  * Global Configuration Matrix for Web3 Automation Framework
  * @module CONFIG
  * @description Centralized environment variables, RPC endpoints, MetaMask file paths, 
- * timeout thresholds, and cryptographic parameters required for end-to-end DApp auditing.
+ * timeout thresholds, 和 cryptographic parameters required for end-to-end DApp auditing.
  */
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export const CONFIG = {
     // Global Target Web3 Decentralized Application URL
     BASE_URL: 'https://app.uniswap.org',
