@@ -79,7 +79,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
 
     // Capture the extension onboarding page dynamically
    // --- 重構：強制鎖定 MetaMask Onboarding 頁面 ---
-    logger。info('TEST_EXECUTION', 'PAGE_CAPTURE', 'Polling for active onboarding window...');
+    logger.info('TEST_EXECUTION', 'PAGE_CAPTURE', 'Polling for active onboarding window...');
 
     let page: Page | undefined;
     // 使用循環進行 60 次輪詢 (總共 60 秒)，確保插件彈窗出現時能被立即抓取
@@ -89,7 +89,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
         page = pages.find(p => 
             p.url().includes('home.html') || 
             p.url().includes('onboarding') || 
-            p.url().includes('extension://')
+            p。url().includes('extension://')
         );
         
         if (page) {
