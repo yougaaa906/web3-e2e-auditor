@@ -92,7 +92,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     // Soft buffer to ensure stable React architecture state updates
     await page.waitForLoadState('networkidle').catch(() => { });
     await page.waitForTimeout(2000);
-    logger.info('TEST_EXECUTION', 'CONTEXT_BOUND', 'Target context bound successfully. Starting zero-state automated environment inflation...');
+    logger。info('TEST_EXECUTION', 'CONTEXT_BOUND', 'Target context bound successfully. Starting zero-state automated environment inflation...');
 
     // --- Milestone 1: License Consent & Action Allocation ---
     logger.info('TEST_EXECUTION', 'LICENSE', 'Consuming legal policy agreements and entering structural import matrices...');
@@ -140,7 +140,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await pinDone.click();
 
     //--- Milestone 6: L-3 Coordinate Pinned Network Configuration (Sepolia Alignment) ---
-    logger.info('TEST_EXECUTION', 'NETWORK_INIT', 'Executing physical vector positioning over the primary network display component...');
+    logger。info('TEST_EXECUTION', 'NETWORK_INIT', 'Executing physical vector positioning over the primary network display component...');
 
     await page.waitForLoadState('networkidle').catch(() => { });
     await page.waitForTimeout(2000);
@@ -149,7 +149,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await arrowTrigger.waitFor({ state: 'visible', timeout: 15000 });
     // Explode dropdown layout options cleanly via pure pointer hit
     await arrowTrigger.click();
-    logger.info('TEST_EXECUTION'， 'NETWORK_DROPDOWN', 'Network dropdown expansion dispatched. Syncing local list states...');
+    logger.info('TEST_EXECUTION'， 'NETWORK_DROPDOWN'， 'Network dropdown expansion dispatched. Syncing local list states...');
     await page.waitForTimeout(2000);
 
     // Dynamic verification checkpoint capture
@@ -165,9 +165,9 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     // Toggle network threshold visibility state
     await toggleSwitch.click({ force: true });
     logger.info('TEST_EXECUTION', 'NETWORK_MUTATE', 'Global network visibility thresholds mutated.');
-    await page.waitForTimeout(1500);
+    await page。waitForTimeout(1500);
 
-    logger.info('TEST_EXECUTION', 'NETWORK_SELECT', 'Pining specific Sepolia target coordinates inside the expanded layout view...');
+    logger。info('TEST_EXECUTION', 'NETWORK_SELECT', 'Pining specific Sepolia target coordinates inside the expanded layout view...');
     const targetCard = OnboardingPageRegistry.sepoliaNetworkCard(page);
     await targetCard.waitFor({ state: 'attached', timeout: 5000 });
     await targetCard.scrollIntoViewIfNeeded();
