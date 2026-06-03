@@ -51,23 +51,35 @@ export class WalletConnectPage extends BasePage {
     async connectToMetaMask(): Promise<Page> {
         console.log("🚀 [Handshake-DApp] Initiating wallet connection sequence...");
 
-        // Force state reset via clean refresh to purge stale injected web3 provider instances
         await this.pageReload();
         await this.waitTimeout(2000);
 
-        // Dispatch pointer interaction onto global authentication selectors
-        await this.waitElemVisible(this.connectBtn, 'Global connect wallet action trigger');
-        await this.elemClick(this.connectBtn, 'Click connect wallet button');
-        console.log("💡 [Handshake-DApp] Main connection trigger executed successfully");
+        // 1. 获取连接按钮，使用 count() 判断其是否存在
+        const connectBtn = this.page.getByTestId('navbar-connect-wallet');
+        
+        // 2. 检查是否已经显示了地址（说明已连接，无需连接流程）
+        const accountDisplay = this.page.locator('[data-testid="navbar-address-display"]');
+        if (await accountDisplay.isVisible({ timeout: 5000 })) {
+            console.log("ℹ️ [Handshake-DApp] Wallet already connected, returning current page.");
+            return this.page; 
+        }
 
-        // Validate vendor layout mounting inside the active view layer
-        await this.waitElemVisible(this.metaMaskOption, 'MetaMask vendor selection target');
+        // 3. 点击连接按钮
+        await this.elemClick(connectBtn, 'Click connect wallet button');
 
-        // Synchronously execute click events while attaching atomic hooks to eliminate popup racing anomalies
-        const popup = await this.clickAndGetPopup(this.metaMaskOption, 'Select MetaMask option');
+        // 4. 感知模式：判断是否出现了“选择钱包列表”
+        // 如果列表没出现，说明可能是直接弹出了 MetaMask 授权，或者已经连上了
+        const isListVisible = await this.metaMaskOption.isVisible({ timeout: 5000 }).catch(() => false);
 
-        console.log('✅ [Handshake-DApp] Successfully locked wallet extension notification context.');
-        return popup;
+        if (isListVisible) {
+            console.log("💡 [Handshake-DApp] List detected, selecting MetaMask...");
+            return await this.clickAndGetPopup(this.metaMaskOption, 'Select MetaMask option');
+        } else {
+            console.log("⚠️ [Handshake-DApp] List skipped, checking for direct auth prompt...");
+            // 这里处理如果没有列表，直接弹出 MetaMask 窗口的情况
+            // 通常是等待页面中新打开的 page
+            return await this.page.context().waitForEvent('page', { timeout: 10000 });
+        }
     }
 
     /**
