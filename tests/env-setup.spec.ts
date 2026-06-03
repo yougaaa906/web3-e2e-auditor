@@ -89,7 +89,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
         page = pages.find(p => 
             p.url().includes('home.html') || 
             p.url().includes('onboarding') || 
-            p。url().includes('extension://')
+            p.url().includes('extension://')
         );
         
         if (page) {
