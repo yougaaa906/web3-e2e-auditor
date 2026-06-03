@@ -95,7 +95,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     logger.info('TEST_EXECUTION', 'CONTEXT_BOUND', 'Target context bound successfully. Starting zero-state automated environment inflation...');
 
     // --- Milestone 1: License Consent & Action Allocation ---
-    logger。info('TEST_EXECUTION', 'LICENSE', 'Consuming legal policy agreements and entering structural import matrices...');
+    logger.info('TEST_EXECUTION', 'LICENSE', 'Consuming legal policy agreements and entering structural import matrices...');
     const termsCheck = OnboardingPageRegistry.termsCheckbox(page);
     await termsCheck.waitFor({ state: 'attached', timeout: 15000 });
     await termsCheck.click({ force: true });
