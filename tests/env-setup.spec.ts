@@ -2,11 +2,6 @@
  * env-setup.spec.ts - Out-of-Band Cloud-Native Provisioning Engine
  * @module EnvSetupSpec
  * @description Executes deterministic zero-state wallet environment provisioning.
- * Orchestrates linear onboarding matrices directly onto the raw web3 provider extension context.
- * * Architectural Paradigms & Anti-Friction Tactics:
- * 1. Reactive Topology Mitigation: Forces rigid 1080P viewports to flatten responsive CSS.
- * 2. Sandboxed Sandbox Interception: Hooks volatile extension redirects via atomic event traps.
- * 3. Atomic Provisioning: Performs deterministic state mutation for CI reproducibility.
  */
 
 import { test, chromium, type Page, type Locator } from '@playwright/test';
@@ -18,27 +13,18 @@ import { logger } from '../utils/logger';
 // 🎯 Declarative Provisioning Blueprint (Decoupled Locator Registry)
 // =========================================================================
 class OnboardingPageRegistry {
-    // Phase 1 & 2: License Agreement & Telemetry
     static termsCheckbox = (page: Page): Locator => page.getByTestId('onboarding-terms-checkbox');
     static importWalletBtn = (page: Page): Locator => page.getByTestId('onboarding-import-wallet');
     static telemetryOptOutBtn = (page: Page): Locator => page.getByTestId('metametrics-no-thanks');
-
-    // Phase 3: Cryptographic Seed Phrase (SRP) Matrix
     static srpInputSlot = (page: Page, index: number): Locator => page.getByTestId(`import-srp__srp-word-${index}`);
     static srpConfirmBtn = (page: Page): Locator => page.getByTestId('import-srp-confirm');
-
-    // Phase 4: Account Vault Hardening
     static passwordNewInput = (page: Page): Locator => page.getByTestId('create-password-new');
     static passwordConfirmInput = (page: Page): Locator => page.getByTestId('create-password-confirm');
     static passwordTermsCheckbox = (page: Page): Locator => page.getByTestId('create-password-terms');
     static passwordSubmitBtn = (page: Page): Locator => page.getByTestId('create-password-import');
-
-    // Phase 5: Onboarding Walkthrough Dismissal
     static completeDoneBtn = (page: Page): Locator => page.getByTestId('onboarding-complete-done');
     static pinNextBtn = (page: Page): Locator => page.getByTestId('pin-extension-next');
     static pinDoneBtn = (page: Page): Locator => page.getByTestId('pin-extension-done');
-
-    // Phase 6: Core Network Alignment
     static networkPickerMenu = (page: Page): Locator => page.getByTestId('network-display');
     static globalTestnetToggle = (page: Page): Locator => page.locator('label.toggle-button');
     static sepoliaNetworkCard = (page: Page): Locator => page.getByTestId('Sepolia');
@@ -48,7 +34,6 @@ class OnboardingPageRegistry {
 // ⚙️ Executable Provisioning Pipeline (State Tree Inflation)
 // =========================================================================
 test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignment @env', async () => {
-    // Allocate generous execution bracket for network-bound cryptographic actions
     test.setTimeout(120000);
 
     const METAMASK_PATH = path.resolve(process.cwd(), 'extension/metamask');
@@ -73,19 +58,17 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
         args: [
             `--disable-extensions-except=${METAMASK_PATH}`,
             `--load-extension=${METAMASK_PATH}`,
-            '--no-sandbox'
+            '--no-sandbox',
+            '--disable-dev-shm-usage'
         ],
     });
 
-    // Capture the extension onboarding page dynamically
-   // --- 重構：強制鎖定 MetaMask Onboarding 頁面 ---
+    // Capture the extension onboarding page dynamically with polling
     logger.info('TEST_EXECUTION', 'PAGE_CAPTURE', 'Polling for active onboarding window...');
 
     let page: Page | undefined;
-    // 使用循環進行 60 次輪詢 (總共 60 秒)，確保插件彈窗出現時能被立即抓取
     for (let i = 0; i < 60; i++) {
         const pages = context.pages();
-        // 直接從現有頁面堆疊中找到目標
         page = pages.find(p => 
             p.url().includes('home.html') || 
             p.url().includes('onboarding') || 
@@ -100,7 +83,6 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     }
 
     if (!page) {
-        // 如果還找不到，打印所有頁面網址，這對後續排查至關重要
         logger.info('DEBUG', 'CURRENT_PAGES', context.pages().map(p => p.url()).join(' | '));
         throw new Error('❌ FATAL: MetaMask onboarding page never appeared.');
     }
