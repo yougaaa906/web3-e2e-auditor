@@ -50,38 +50,45 @@ export class WalletConnectPage extends BasePage {
      */
     async connectToMetaMask(): Promise<Page> {
         console.log("🚀 [Handshake-DApp] Initiating wallet connection sequence...");
-
-        await this.pageReload();
-        await this.waitTimeout(2000);
-
-        // 1. 获取连接按钮，使用 count() 判断其是否存在
-        const connectBtn = this.page.getByTestId('navbar-connect-wallet');
-        
-        // 2. 检查是否已经显示了地址（说明已连接，无需连接流程）
+    
+        // 1. 导航并确保页面加载
+        await this.page.goto(process.env.BASE_URL || 'https://app.uniswap.org');
+        await this.page.waitForLoadState('domcontentloaded');
+    
+        // 2. 📸  forensic：捕获初始落地页状态
+        await this.page.screenshot({ path: 'test-results/debug-dapp-init.png', fullPage: true });
+    
+        // 3. 感知模式：检查是否已经处于连接状态
+        // 如果存在地址显示组件，则无需点击连接
         const accountDisplay = this.page.locator('[data-testid="navbar-address-display"]');
-        if (await accountDisplay.isVisible({ timeout: 5000 })) {
-            console.log("ℹ️ [Handshake-DApp] Wallet already connected, returning current page.");
-            return this.page; 
+        const connectBtn = this.page.getByTestId('navbar-connect-wallet');
+    
+        // 判断逻辑：如果已经连上，直接返回；如果没连上，尝试点击
+        const isAlreadyConnected = await accountDisplay.isVisible({ timeout: 5000 }).catch(() => false);
+    
+        if (isAlreadyConnected) {
+            console.log("✅ [Handshake-DApp] Wallet already detected as connected (session restored).");
+            return this.page;
         }
-
-        // 3. 点击连接按钮
-        await this.elemClick(connectBtn, 'Click connect wallet button');
-
-        // 4. 感知模式：判断是否出现了“选择钱包列表”
-        // 如果列表没出现，说明可能是直接弹出了 MetaMask 授权，或者已经连上了
-        const isListVisible = await this.metaMaskOption.isVisible({ timeout: 5000 }).catch(() => false);
-
-        if (isListVisible) {
-            console.log("💡 [Handshake-DApp] List detected, selecting MetaMask...");
+    
+        // 4. 执行防御性连接流程
+        console.log("💡 [Handshake-DApp] Wallet not connected, attempting authorization...");
+        
+        try {
+            await this.elemClick(connectBtn, 'Click connect wallet button');
+            
+            // 等待选择器加载
+            await this.waitElemVisible(this.metaMaskOption, 'MetaMask vendor selection target');
+            
+            // 捕获弹窗
             return await this.clickAndGetPopup(this.metaMaskOption, 'Select MetaMask option');
-        } else {
-            console.log("⚠️ [Handshake-DApp] List skipped, checking for direct auth prompt...");
-            // 这里处理如果没有列表，直接弹出 MetaMask 窗口的情况
-            // 通常是等待页面中新打开的 page
-            return await this.page.context().waitForEvent('page', { timeout: 10000 });
+        } catch (error) {
+            // 🚨 失败现场取证
+            await this.page.screenshot({ path: 'test-results/debug-connect-failure.png', fullPage: true });
+            console.error("❌ [Handshake-DApp] Connection failed, screenshot captured.");
+            throw error;
         }
     }
-
     /**
      * Asserts runtime connection persistence thresholds and extracts validated address hashes.
      * @description Employs soft-exception shields against transient introductory walkthrough tours,
