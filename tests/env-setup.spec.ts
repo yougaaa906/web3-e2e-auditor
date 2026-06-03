@@ -122,10 +122,10 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await OnboardingPageRegistry.passwordNewInput(page).fill(walletPassword);
     await OnboardingPageRegistry.passwordConfirmInput(page).fill(walletPassword);
     await OnboardingPageRegistry.passwordTermsCheckbox(page).click({ force: true });
-    await OnboardingPageRegistry。passwordSubmitBtn(page).click();
+    await OnboardingPageRegistry.passwordSubmitBtn(page).click();
 
     // --- Milestone 5: Clearance of Context Walkthrough Modal Nodes ---
-    logger。info('TEST_EXECUTION', 'WALKTHROUGH', 'Identity instantiated. Sweeping system instructional dialog cascades...');
+    logger.info('TEST_EXECUTION', 'WALKTHROUGH', 'Identity instantiated. Sweeping system instructional dialog cascades...');
 
     const completeBtn = OnboardingPageRegistry.completeDoneBtn(page);
     await completeBtn.waitFor({ state: 'visible', timeout: 15000 });
@@ -167,7 +167,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     logger.info('TEST_EXECUTION', 'NETWORK_MUTATE', 'Global network visibility thresholds mutated.');
     await page.waitForTimeout(1500);
 
-    logger。info('TEST_EXECUTION', 'NETWORK_SELECT', 'Pining specific Sepolia target coordinates inside the expanded layout view...');
+    logger.info('TEST_EXECUTION', 'NETWORK_SELECT', 'Pining specific Sepolia target coordinates inside the expanded layout view...');
     const targetCard = OnboardingPageRegistry.sepoliaNetworkCard(page);
     await targetCard.waitFor({ state: 'attached', timeout: 5000 });
     await targetCard.scrollIntoViewIfNeeded();
