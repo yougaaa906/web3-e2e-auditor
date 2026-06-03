@@ -35,7 +35,7 @@ export const CONFIG = {
     METAMASK: {
         EXTENSION_ID: 'efbbmcklppldjgpikphbmnnfgjdinich',
         EXTENSION_PATH: process.env.METAMASK_PATH || path.resolve(__dirname, '../extension/metamask'),
-        USER_DATA_PATH: process。env.USER_DATA_PATH || path.resolve(__dirname, '../user_data')
+        USER_DATA_PATH: process.env.USER_DATA_PATH || path.resolve(__dirname, '../user_data')
     },
 
     // Custom Gas manipulation limits (Denominated in Gwei) mapped out for mempool boundary audits
