@@ -1,46 +1,65 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
 import path from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const envPath = path.resolve(__dirname, '.env');
-console.log(`📁 Loading framework execution context profiles from: ${envPath}`);
-dotenv.config({ path: envPath });
-
-console.log(`🔐 Cryptographic context validation - WALLET_PASSWORD declared: ${process.env.WALLET_PASSWORD ? 'Yes' : 'No'}`);
-console.log(`🔗 Target gateway node bound - BASE_URL: ${process.env.BASE_URL}`);
+/**
+ * Load environment variables from .env file.
+ * In CI environments, these are expected to be injected via GitHub Secrets.
+ */
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 export default defineConfig({
   testDir: './tests',
-
-  // 1. Sequential thread enforcement to prevent persistent directory lock conflict
-  // 2. Pre-authenticated state yielding to completely isolate test code from brittle sign-on steps
-  // 3. Immutable environment sandboxing to guarantee reproducible, isolated state execution across every suite invocation
-  workers: 1,
+  
+  /**
+   * Sequential execution enforcement for DApp audits.
+   * Workers are set to 1 in CI to prevent race conditions during 
+   * wallet state manipulation and blockchain transaction simulation.
+   */
+  workers: process.env.CI ? 1 : undefined,
   fullyParallel: false,
 
+  /**
+   * Define global timeout for long-running blockchain transaction confirmations.
+   */
+  timeout: 120000,
+  expect: {
+    timeout: 20000,
+  },
 
   reporter: [
     ['line'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }]
   ],
 
-  timeout: 120000,
-  expect: {
-    timeout: 20000,
-  },
-
   use: {
-    headless: false,
+    // Enable headed mode locally for debugging, headless in CI for stability
+    headless: !!process.env.CI,
     baseURL: process.env.BASE_URL || 'https://app.uniswap.org',
+    trace: 'on-first-retry',
   },
 
   projects: [
     {
-      name: 'chrome',
+      /**
+       * Setup project: Configures the browser context with the wallet state.
+       * This must run before any auditing suites to ensure an authenticated environment.
+       */
+      name: 'setup',
+      testMatch: 'tests/env-setup.spec.ts',
+    },
+    {
+      /**
+       * Main auditing suite: Dependent on 'setup' to ensure 
+       * the wallet is already connected and unlocked.
+       */
+      name: 'chromium-tests',
+      use: { 
+        ...devices['Desktop Chrome'],
+        // Automatically injects the pre-authenticated storage state from setup
+        storageState: 'playwright/.auth/state.json',
+      },
+      dependencies: ['setup'],
     },
   ],
 });
