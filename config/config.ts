@@ -4,7 +4,7 @@
  * @description Centralized environment variables, RPC endpoints, MetaMask file paths, 
  * timeout thresholds, and cryptographic parameters required for end-to-end DApp auditing.
  */
-
+import path from 'path';
 export const CONFIG = {
     // Global Target Web3 Decentralized Application URL
     BASE_URL: 'https://app.uniswap.org',
