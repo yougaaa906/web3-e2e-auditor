@@ -55,10 +55,9 @@ class OnboardingPageRegistry {
 test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignment @env', async () => {
     // Allocate generous 90-second execution bracket for network-bound cryptographic actions
     test.setTimeout(90000);
-
-    const METAMASK_PATH = CONFIG.METAMASK.EXTENSION_PATH;
-    const USER_DATA_PATH = CONFIG.METAMASK.USER_DATA_PATH;
-
+    const METAMASK_PATH = path.resolve(process.cwd(), 'extension/metamask');
+    const USER_DATA_PATH = path.resolve(process.cwd(), 'playwright/.auth/user-data');
+    
     if (!fs.existsSync(METAMASK_PATH)) {
         throw new Error(`❌ FATAL CONFIGURATION DEFECT: Extension binary block missing at targeted path: ${METAMASK_PATH}`);
     }
@@ -96,7 +95,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     logger.info('TEST_EXECUTION', 'CONTEXT_BOUND', 'Target context bound successfully. Starting zero-state automated environment inflation...');
 
     // --- Milestone 1: License Consent & Action Allocation ---
-    logger.info('TEST_EXECUTION', 'LICENSE', 'Consuming legal policy agreements and entering structural import matrices...');
+    logger。info('TEST_EXECUTION', 'LICENSE', 'Consuming legal policy agreements and entering structural import matrices...');
     const termsCheck = OnboardingPageRegistry.termsCheckbox(page);
     await termsCheck.waitFor({ state: 'attached', timeout: 15000 });
     await termsCheck.click({ force: true });
@@ -123,10 +122,10 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await OnboardingPageRegistry.passwordNewInput(page).fill(walletPassword);
     await OnboardingPageRegistry.passwordConfirmInput(page).fill(walletPassword);
     await OnboardingPageRegistry.passwordTermsCheckbox(page).click({ force: true });
-    await OnboardingPageRegistry.passwordSubmitBtn(page).click();
+    await OnboardingPageRegistry。passwordSubmitBtn(page).click();
 
     // --- Milestone 5: Clearance of Context Walkthrough Modal Nodes ---
-    logger.info('TEST_EXECUTION', 'WALKTHROUGH', 'Identity instantiated. Sweeping system instructional dialog cascades...');
+    logger。info('TEST_EXECUTION', 'WALKTHROUGH', 'Identity instantiated. Sweeping system instructional dialog cascades...');
 
     const completeBtn = OnboardingPageRegistry.completeDoneBtn(page);
     await completeBtn.waitFor({ state: 'visible', timeout: 15000 });
@@ -150,7 +149,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await arrowTrigger.waitFor({ state: 'visible', timeout: 15000 });
     // Explode dropdown layout options cleanly via pure pointer hit
     await arrowTrigger.click();
-    logger.info('TEST_EXECUTION', 'NETWORK_DROPDOWN', 'Network dropdown expansion dispatched. Syncing local list states...');
+    logger。info('TEST_EXECUTION'， 'NETWORK_DROPDOWN', 'Network dropdown expansion dispatched. Syncing local list states...');
     await page.waitForTimeout(2000);
 
     // Dynamic verification checkpoint capture
@@ -168,14 +167,19 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     logger.info('TEST_EXECUTION', 'NETWORK_MUTATE', 'Global network visibility thresholds mutated.');
     await page.waitForTimeout(1500);
 
-    logger.info('TEST_EXECUTION', 'NETWORK_SELECT', 'Pining specific Sepolia target coordinates inside the expanded layout view...');
+    logger。info('TEST_EXECUTION', 'NETWORK_SELECT', 'Pining specific Sepolia target coordinates inside the expanded layout view...');
     const targetCard = OnboardingPageRegistry.sepoliaNetworkCard(page);
     await targetCard.waitFor({ state: 'attached', timeout: 5000 });
     await targetCard.scrollIntoViewIfNeeded();
     await targetCard.click({ force: true });
 
     //--- Milestone 7: Final Synchronization & State Persistence ---
-    await page.waitForTimeout(2000);
-    logger.info('TEST_EXECUTION', 'FINALIZE', 'State tree tracking hardened successfully. Closing storage context channels...');
+    const statePath = path.resolve(process.cwd(), 'playwright/.auth/state.json');
+    if (!fs.existsSync(path.dirname(statePath))) {
+        fs.mkdirSync(path.dirname(statePath), { recursive: true });
+    }
+
+    await page.context().storageState({ path: statePath });
+    logger.info('TEST_EXECUTION', 'FINALIZE', 'State tree tracking hardened successfully.');
     await context.close();
 });
