@@ -1,7 +1,7 @@
 /**
- * env-setup.spec.ts - Out-of-Band Cloud-Native Provisioning Engine
- * @module EnvSetupSpec
+ * env-setup.spec.ts - Cloud-Native Provisioning Engine
  * @description Executes deterministic zero-state wallet environment provisioning.
+ * Strategy: Persistent Context -> Force Navigate to Extension Entry -> Sequential Onboarding.
  */
 
 import { test, chromium, type Page, type Locator } from '@playwright/test';
@@ -10,7 +10,7 @@ import fs from 'fs';
 import { logger } from '../utils/logger';
 
 // =========================================================================
-// 🎯 Declarative Provisioning Blueprint (Decoupled Locator Registry)
+// 🎯 Declarative Provisioning Blueprint (Locator Registry)
 // =========================================================================
 class OnboardingPageRegistry {
     static termsCheckbox = (page: Page): Locator => page.getByTestId('onboarding-terms-checkbox');
@@ -30,9 +30,6 @@ class OnboardingPageRegistry {
     static sepoliaNetworkCard = (page: Page): Locator => page.getByTestId('Sepolia');
 }
 
-// =========================================================================
-// ⚙️ Executable Provisioning Pipeline (State Tree Inflation)
-// =========================================================================
 test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignment @env', async () => {
     test.setTimeout(120000);
 
@@ -40,20 +37,21 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     const USER_DATA_PATH = path.resolve(process.cwd(), 'playwright/.auth/user-data');
     
     if (!fs.existsSync(METAMASK_PATH)) {
-        throw new Error(`❌ FATAL: Extension binary block missing at: ${METAMASK_PATH}`);
+        throw new Error(`❌ FATAL: Extension binary missing at: ${METAMASK_PATH}`);
     }
 
     const mnemonicString = process.env.MNEMONIC || process.env.SECRET_PHRASE;
     const walletPassword = process.env.WALLET_PASSWORD;
 
     if (!mnemonicString || !walletPassword) {
-        throw new Error('❌ FATAL: MNEMONIC or WALLET_PASSWORD environment variables are unasserted.');
+        throw new Error('❌ FATAL: MNEMONIC or WALLET_PASSWORD not asserted.');
     }
 
-    logger.info('TEST_EXECUTION', 'SANDBOX_INIT', 'Mounting structural persistent browser sandbox...');
+    logger.info('TEST_EXECUTION', 'SANDBOX_INIT', 'Mounting persistent browser sandbox...');
     
+    // 初始化上下文：在 CI 上開啟 headed 模式配合 xvfb-run
     const context = await chromium.launchPersistentContext(USER_DATA_PATH, {
-        headless: !!process.env.CI,
+        headless: false, 
         viewport: { width: 1920, height: 1080 },
         args: [
             `--disable-extensions-except=${METAMASK_PATH}`,
@@ -63,48 +61,30 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
         ],
     });
 
-    // Capture the extension onboarding page dynamically with polling
-    logger.info('TEST_EXECUTION', 'PAGE_CAPTURE', 'Polling for active onboarding window...');
-
-    let page: Page | undefined;
-    for (let i = 0; i < 60; i++) {
-        const pages = context.pages();
-        page = pages.find(p => 
-            p.url().includes('home.html') || 
-            p.url().includes('onboarding') || 
-            p.url().includes('extension://')
-        );
-        
-        if (page) {
-            logger.info('TEST_EXECUTION', 'PAGE_CAPTURE', `Found target: ${page.url()}`);
-            break;
-        }
-        await new Promise(r => setTimeout(r, 1000));
-    }
-
-    if (!page) {
-        logger.info('DEBUG', 'CURRENT_PAGES', context.pages().map(p => p.url()).join(' | '));
-        throw new Error('❌ FATAL: MetaMask onboarding page never appeared.');
-    }
-
+    // --- 關鍵優化：主動導航模式 ---
+    logger.info('TEST_EXECUTION', 'FORCE_NAV', 'Forcing navigation to MetaMask onboarding...');
+    
+    // 獲取 Extension ID (MetaMask 固定 ID)
+    const extensionId = "nkbihfbeogaeaoehlefnkodbefgpgknn";
+    const onboardingUrl = `chrome-extension://${extensionId}/home.html#onboarding`;
+    
+    const page = await context.newPage();
+    await page.goto(onboardingUrl);
     await page.bringToFront();
     await page.waitForLoadState('domcontentloaded');
 
-    logger.info('TEST_EXECUTION', 'CONTEXT_BOUND', 'Inflation start: Provisioning wallet state...');
+    logger.info('TEST_EXECUTION', 'CONTEXT_BOUND', `Bound to: ${page.url()}`);
 
     // --- Milestone 1: License Consent ---
-    logger.info('TEST_EXECUTION', 'LICENSE', 'Consuming legal policy agreements...');
     const termsCheck = OnboardingPageRegistry.termsCheckbox(page);
-    await termsCheck.waitFor({ state: 'visible', timeout: 15000 });
+    await termsCheck.waitFor({ state: 'visible', timeout: 20000 });
     await termsCheck.click({ force: true });
     await OnboardingPageRegistry.importWalletBtn(page).click();
 
     // --- Milestone 2: Telemetry Deletion ---
-    logger.info('TEST_EXECUTION', 'TELEMETRY', 'Dismissing analytics telemetry...');
     await OnboardingPageRegistry.telemetryOptOutBtn(page).click();
 
     // --- Milestone 3: Sequential SRP Mapping ---
-    logger.info('TEST_EXECUTION', 'SRP_INPUT', 'Filling cryptographic seed matrices...');
     const mnemonicWords = mnemonicString.split(' ');
     for (let i = 0; i < 12; i++) {
         await OnboardingPageRegistry.srpInputSlot(page, i).fill(mnemonicWords[i]);
@@ -112,20 +92,17 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await OnboardingPageRegistry.srpConfirmBtn(page).click();
 
     // --- Milestone 4: Vault Hardening ---
-    logger.info('TEST_EXECUTION', 'PASSWORD', 'Instantiating security credential profiles...');
     await OnboardingPageRegistry.passwordNewInput(page).fill(walletPassword);
     await OnboardingPageRegistry.passwordConfirmInput(page).fill(walletPassword);
     await OnboardingPageRegistry.passwordTermsCheckbox(page).click({ force: true });
     await OnboardingPageRegistry.passwordSubmitBtn(page).click();
 
     // --- Milestone 5: Clearance of Modal Nodes ---
-    logger.info('TEST_EXECUTION', 'WALKTHROUGH', 'Sweeping instructional dialog cascades...');
     await OnboardingPageRegistry.completeDoneBtn(page).click();
     await OnboardingPageRegistry.pinNextBtn(page).click();
     await OnboardingPageRegistry.pinDoneBtn(page).click();
 
-    // --- Milestone 6: Network Configuration (Sepolia Alignment) ---
-    logger.info('TEST_EXECUTION', 'NETWORK_INIT', 'Executing physical vector positioning on network display...');
+    // --- Milestone 6: Network Configuration (Sepolia) ---
     await OnboardingPageRegistry.networkPickerMenu(page).first().click();
     await OnboardingPageRegistry.globalTestnetToggle(page).first().click({ force: true });
     await OnboardingPageRegistry.sepoliaNetworkCard(page).click({ force: true });
@@ -135,6 +112,6 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     if (!fs.existsSync(path.dirname(statePath))) fs.mkdirSync(path.dirname(statePath), { recursive: true });
 
     await page.context().storageState({ path: statePath });
-    logger.info('TEST_EXECUTION', 'FINALIZE', 'State tree hardened. Context channel closing.');
+    logger.info('TEST_EXECUTION', 'FINALIZE', 'Wallet provisioned. State saved.');
     await context.close();
 });
