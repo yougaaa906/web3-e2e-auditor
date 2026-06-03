@@ -149,7 +149,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await arrowTrigger.waitFor({ state: 'visible', timeout: 15000 });
     // Explode dropdown layout options cleanly via pure pointer hit
     await arrowTrigger.click();
-    logger。info('TEST_EXECUTION'， 'NETWORK_DROPDOWN', 'Network dropdown expansion dispatched. Syncing local list states...');
+    logger.info('TEST_EXECUTION'， 'NETWORK_DROPDOWN', 'Network dropdown expansion dispatched. Syncing local list states...');
     await page.waitForTimeout(2000);
 
     // Dynamic verification checkpoint capture
