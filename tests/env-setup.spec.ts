@@ -78,10 +78,33 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     });
 
     // Capture the extension onboarding page dynamically
-    const page = await context.waitForEvent('page', { 
-        predicate: (p) => p.url().includes('home.html') || p.url().includes('onboarding'),
-        timeout: 60000 
-    });
+   // --- 重構：強制鎖定 MetaMask Onboarding 頁面 ---
+    logger。info('TEST_EXECUTION', 'PAGE_CAPTURE', 'Polling for active onboarding window...');
+
+    let page: Page | undefined;
+    // 使用循環進行 60 次輪詢 (總共 60 秒)，確保插件彈窗出現時能被立即抓取
+    for (let i = 0; i < 60; i++) {
+        const pages = context.pages();
+        // 直接從現有頁面堆疊中找到目標
+        page = pages.find(p => 
+            p.url().includes('home.html') || 
+            p.url().includes('onboarding') || 
+            p.url().includes('extension://')
+        );
+        
+        if (page) {
+            logger.info('TEST_EXECUTION', 'PAGE_CAPTURE', `Found target: ${page.url()}`);
+            break;
+        }
+        await new Promise(r => setTimeout(r, 1000));
+    }
+
+    if (!page) {
+        // 如果還找不到，打印所有頁面網址，這對後續排查至關重要
+        logger.info('DEBUG', 'CURRENT_PAGES', context.pages().map(p => p.url()).join(' | '));
+        throw new Error('❌ FATAL: MetaMask onboarding page never appeared.');
+    }
+
     await page.bringToFront();
     await page.waitForLoadState('domcontentloaded');
 
