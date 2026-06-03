@@ -34,8 +34,8 @@ export const CONFIG = {
     // Browser Extensions sandboxing directories and local storage states retention profiles
     METAMASK: {
         EXTENSION_ID: 'efbbmcklppldjgpikphbmnnfgjdinich',
-        EXTENSION_PATH: 'D:\\playwright-web3\\extension\\metamask',
-        USER_DATA_PATH: 'D:\\playwright-web3\\user_data'
+        EXTENSION_PATH: process.env.METAMASK_PATH || path.resolve(__dirname, '../extension/metamask')，
+        USER_DATA_PATH: process。env.USER_DATA_PATH || path.resolve(__dirname, '../user_data')
     },
 
     // Custom Gas manipulation limits (Denominated in Gwei) mapped out for mempool boundary audits
