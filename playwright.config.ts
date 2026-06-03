@@ -6,7 +6,7 @@ import path from 'path';
  * Load environment variables from .env file.
  * In CI environments, these are expected to be injected via GitHub Secrets.
  */
-const envPath = path。resolve(process.cwd(), '.env');
+const envPath = path.resolve(process.cwd(), '.env');
 dotenv.config({ path: envPath });
 
 export default defineConfig({
