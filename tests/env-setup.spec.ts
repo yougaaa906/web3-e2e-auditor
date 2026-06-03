@@ -1,7 +1,7 @@
 /**
  * env-setup.spec.ts - Cloud-Native Provisioning Engine
  * @description Executes deterministic zero-state wallet environment provisioning.
- * Strategy: Persistent Context -> Force Navigate to Extension Entry -> Sequential Onboarding.
+ * Strategy: Persistent Context -> Capture Background Page -> Direct UI Binding.
  */
 
 import { test, chromium, type Page, type Locator } from '@playwright/test';
@@ -37,21 +37,20 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     const USER_DATA_PATH = path.resolve(process.cwd(), 'playwright/.auth/user-data');
     
     if (!fs.existsSync(METAMASK_PATH)) {
-        throw new Error(`❌ FATAL: Extension binary missing at: ${METAMASK_PATH}`);
+        throw new Error(`Fatal: Extension binary block missing at: ${METAMASK_PATH}`);
     }
 
     const mnemonicString = process.env.MNEMONIC || process.env.SECRET_PHRASE;
     const walletPassword = process.env.WALLET_PASSWORD;
 
     if (!mnemonicString || !walletPassword) {
-        throw new Error('❌ FATAL: MNEMONIC or WALLET_PASSWORD not asserted.');
+        throw new Error('Fatal: MNEMONIC or WALLET_PASSWORD environment variables are unasserted.');
     }
 
     logger.info('TEST_EXECUTION', 'SANDBOX_INIT', 'Mounting persistent browser sandbox...');
     
-    // 初始化上下文：在 CI 上開啟 headed 模式配合 xvfb-run
     const context = await chromium.launchPersistentContext(USER_DATA_PATH, {
-        headless: false, 
+        headless: false,
         viewport: { width: 1920, height: 1080 },
         args: [
             `--disable-extensions-except=${METAMASK_PATH}`,
@@ -61,23 +60,33 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
         ],
     });
 
-    // --- 關鍵優化：主動導航模式 ---
-    logger.info('TEST_EXECUTION', 'FORCE_NAV', 'Forcing navigation to MetaMask onboarding...');
-    
-    // 獲取 Extension ID (MetaMask 固定 ID)
-    const extensionId = "nkbihfbeogaeaoehlefnkodbefgpgknn";
-    const onboardingUrl = `chrome-extension://${extensionId}/home.html#onboarding`;
-    
-    const page = await context.newPage();
-    await page.goto(onboardingUrl);
+    // ---重構：利用 Background Page 穩定捕獲 UI---
+    logger.info('TEST_EXECUTION', 'PAGE_CAPTURE', 'Capturing existing extension background instance...');
+
+    let page: Page | undefined;
+    for (let i = 0; i < 40; i++) {
+        // 直接在所有頁面中尋找 MetaMask 的 UI
+        page = context.pages().find(p => p.url().includes('home.html') || p.url().includes('onboarding'));
+        
+        if (page) {
+            logger.info('TEST_EXECUTION', 'PAGE_CAPTURE', `Found target: ${page.url()}`);
+            break;
+        }
+        await new Promise(r => setTimeout(r, 1500));
+    }
+
+    if (!page) {
+        const allUrls = context.pages().map(p => p.url()).join(' | ');
+        logger.info('DEBUG', 'CURRENT_PAGES', `Pages found: ${allUrls}`);
+        throw new Error('Fatal: MetaMask onboarding page failed to mount.');
+    }
+
     await page.bringToFront();
     await page.waitForLoadState('domcontentloaded');
 
-    logger.info('TEST_EXECUTION', 'CONTEXT_BOUND', `Bound to: ${page.url()}`);
-
     // --- Milestone 1: License Consent ---
     const termsCheck = OnboardingPageRegistry.termsCheckbox(page);
-    await termsCheck.waitFor({ state: 'visible', timeout: 20000 });
+    await termsCheck.waitFor({ state: 'visible', timeout: 15000 });
     await termsCheck.click({ force: true });
     await OnboardingPageRegistry.importWalletBtn(page).click();
 
@@ -102,7 +111,7 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     await OnboardingPageRegistry.pinNextBtn(page).click();
     await OnboardingPageRegistry.pinDoneBtn(page).click();
 
-    // --- Milestone 6: Network Configuration (Sepolia) ---
+    // --- Milestone 6: Network Configuration (Sepolia Alignment) ---
     await OnboardingPageRegistry.networkPickerMenu(page).first().click();
     await OnboardingPageRegistry.globalTestnetToggle(page).first().click({ force: true });
     await OnboardingPageRegistry.sepoliaNetworkCard(page).click({ force: true });
@@ -112,6 +121,6 @@ test('Cloud-Native Provisioning: Automated Credential Ingestion & Sepolia Alignm
     if (!fs.existsSync(path.dirname(statePath))) fs.mkdirSync(path.dirname(statePath), { recursive: true });
 
     await page.context().storageState({ path: statePath });
-    logger.info('TEST_EXECUTION', 'FINALIZE', 'Wallet provisioned. State saved.');
+    logger.info('TEST_EXECUTION', 'FINALIZE', 'State tree hardened.');
     await context.close();
 });
