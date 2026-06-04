@@ -48,48 +48,40 @@ export class WalletConnectPage extends BasePage {
      * stale provider sessions across parallel execution threads.
      * @returns {Promise<Page>} The intercepted external extension page notification handle.
      */
-    async connectToMetaMask(): Promise<Page> {
-        console.log("🚀 [Handshake-DApp] Initiating wallet connection sequence...");
-    
+   async connectToMetaMask(): Promise<Page> {
+        console.log("🚀 [Handshake] Navigating to DApp...");
         await this.page.goto(process.env.BASE_URL || 'https://app.uniswap.org');
         
-        // 关键优化 1: 使用 'commit' 而不是 'domcontentloaded'
-        // 很多现代 DApp 在 DOM 加载后还需要数秒的 JS 初始化，这期间不要强行渲染截图
-        await this.page.waitForLoadState('commit');
-    
-        // 关键优化 2: 延迟截图，且禁用 fullPage
-        // 不要截取长页面，这会占用极大的渲染显存
-        try {
-            await this.page.screenshot({ path: 'test-results/debug-init.png', fullPage: false, timeout: 5000 });
-        } catch (e) {
-            console.warn("⚠️ [Handshake-DApp] Screenshot skipped to prevent render hang.");
-        }
-    
-        const accountDisplay = this.page.locator('[data-testid="navbar-address-display"]');
-        const connectBtn = this.page.getByTestId('navbar-connect-wallet');
-    
-        // 关键优化 3: 增加更长的初始等待，给 React 框架 hydration 时间
-        const isAlreadyConnected = await accountDisplay.isVisible({ timeout: 10000 }).catch(() => false);
-    
-        if (isAlreadyConnected) {
-            console.log("✅ [Handshake-DApp] Session already active.");
-            return this.page;
-        }
-    
-        console.log("💡 [Handshake-DApp] Attempting authorization...");
+        // 强制刷新：这是你本地经验的“稳定器”，确保 Web3 Provider 被注入
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
         
-        try {
-            // 关键优化 4: 使用 'force: true' 强制点击，忽略遮挡
-            // 在 CI 环境下，有时不可见的动画层会遮挡按钮，force 可以穿透它
-            await connectBtn.click({ timeout: 15000, force: true });
-            
-            await this.waitElemVisible(this.metaMaskOption, 'MetaMask option');
-            return await this.clickAndGetPopup(this.metaMaskOption, 'Select MetaMask');
-        } catch (error) {
-            // 关键优化 5: 失败取证时，先尝试关闭所有冗余的 console 和 log，降低内存压力
-            await this.page.screenshot({ path: 'test-results/debug-fail.png', fullPage: false, timeout: 5000 });
-            throw error;
+        // 1. 验证 Provider 是否就绪
+        const isProviderReady = await this.page.evaluate(() => typeof window.ethereum !== 'undefined');
+        if (!isProviderReady) {
+            throw new Error("❌ FATAL: window.ethereum not found. MetaMask extension failed to inject.");
         }
+        console.log("✅ [Handshake] Web3 Provider injected.");
+    
+        // 2. 检测并点击连接按钮
+        const connectBtn = this.page.getByTestId('navbar-connect-wallet');
+        await connectBtn.click({ force: true });
+    
+        // 3. 放弃 waitForEvent，直接查找弹窗
+        console.log("🔎 [Handshake] Searching for MetaMask popup...");
+        const maxRetries = 20; 
+        for (let i = 0; i < maxRetries; i++) {
+            const pages = this.page.context().pages();
+            // 关键：寻找 MetaMask 的 notification 页面
+            const mmPage = pages.find(p => p.url().includes('notification') || p.url().includes('popup'));
+            
+            if (mmPage) {
+                console.log("🎉 [Handshake] MetaMask popup found!");
+                return mmPage;
+            }
+            await this.page.waitForTimeout(1000); // 每一秒检查一次
+        }
+
+        throw new Error("❌ FATAL: MetaMask popup did not appear after 20 seconds.");
     }
     /**
      * Asserts runtime connection persistence thresholds and extracts validated address hashes.
