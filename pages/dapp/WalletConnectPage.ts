@@ -50,45 +50,37 @@ export class WalletConnectPage extends BasePage {
      */
    async connectToMetaMask(): Promise<Page> {
         await this.page.goto(process.env.BASE_URL || 'https://app.uniswap.org');
+    
+        // 1. 暴力清除所有可能导致“已连接”假象的本地存储
+        await this.page.evaluate(() => {
+            localStorage.clear();
+            sessionStorage.clear();
+        });
+        await this.page.reload();
+        await this.page.waitForLoadState('networkidle');
+    
+        // 2. 绕过 UI 按钮，直接触发底层请求
+        // 很多 DApp 的按钮点击只是调用 window.ethereum.request
+        // 我们直接调用它，看看会发生什么
+        console.log("🚀 [Handshake] Directly triggering eth_requestAccounts...");
         
-        // 强制检查 Provider 状态
-        const providerStatus = await this.page.evaluate(() => {
-            return {
-                hasEthereum: typeof window.ethereum !== 'undefined',
-                isMetaMask: !!(window.ethereum && window.ethereum.isMetaMask)
-            };
-        });
-        console.log("🔍 [Handshake] Provider Status:", providerStatus);
+        const requestPromise = this.page.evaluate(() => {
+            return window.ethereum.request({ method: 'eth_requestAccounts' });
+        }).catch(e => e.message);
     
-        if (!providerStatus.hasEthereum) {
-            throw new Error("❌ FATAL: MetaMask Provider not injected in DApp context!");
-        }
-    
-        // 监听所有页面请求，看点击后有没有触发连接请求
-        this.page.on('request', request => {
-            if (request.url().includes('wallet_requestPermissions')) {
-                console.log("✅ [Handshake] Detected Web3 Connection Request!");
-            }
-        });
-    
-        console.log("🚀 [Handshake] Clicking connect button...");
-        const connectBtn = this.page.getByTestId('navbar-connect-wallet');
-        await connectBtn.click({ force: true });
-    
-        // 弹窗捕获逻辑
+        // 3. 此时再寻找弹窗
         const maxRetries = 15;
         for (let i = 0; i < maxRetries; i++) {
             const pages = this.page.context().pages();
             const mmPage = pages.find(p => p.url().includes('notification') || p.url().includes('popup'));
             if (mmPage) {
-                console.log("🎉 [Handshake] Pop-up detected!");
+                console.log("🎉 [Handshake] MetaMask popup captured via direct request!");
                 return mmPage;
             }
             await this.page.waitForTimeout(1000);
         }
     
-        // 如果运行到这里，说明点击了但什么都没发生
-        throw new Error("❌ FATAL: Button clicked, but NO Web3 connection request detected. Possible UI handler error.");
+        throw new Error("❌ FATAL: Direct eth_requestAccounts call produced NO popup. Is MetaMask actually active?");
     }
     /**
      * Asserts runtime connection persistence thresholds and extracts validated address hashes.
