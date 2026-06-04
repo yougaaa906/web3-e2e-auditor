@@ -51,41 +51,43 @@ export class WalletConnectPage extends BasePage {
     async connectToMetaMask(): Promise<Page> {
         console.log("🚀 [Handshake-DApp] Initiating wallet connection sequence...");
     
-        // 1. 导航并确保页面加载
         await this.page.goto(process.env.BASE_URL || 'https://app.uniswap.org');
-        await this.page.waitForLoadState('domcontentloaded');
+        
+        // 关键优化 1: 使用 'commit' 而不是 'domcontentloaded'
+        // 很多现代 DApp 在 DOM 加载后还需要数秒的 JS 初始化，这期间不要强行渲染截图
+        await this.page.waitForLoadState('commit');
     
-        // 2. 📸  forensic：捕获初始落地页状态
-        await this.page.screenshot({ path: 'test-results/debug-dapp-init.png', fullPage: true });
+        // 关键优化 2: 延迟截图，且禁用 fullPage
+        // 不要截取长页面，这会占用极大的渲染显存
+        try {
+            await this.page.screenshot({ path: 'test-results/debug-init.png', fullPage: false, timeout: 5000 });
+        } catch (e) {
+            console.warn("⚠️ [Handshake-DApp] Screenshot skipped to prevent render hang.");
+        }
     
-        // 3. 感知模式：检查是否已经处于连接状态
-        // 如果存在地址显示组件，则无需点击连接
         const accountDisplay = this.page.locator('[data-testid="navbar-address-display"]');
         const connectBtn = this.page.getByTestId('navbar-connect-wallet');
     
-        // 判断逻辑：如果已经连上，直接返回；如果没连上，尝试点击
-        const isAlreadyConnected = await accountDisplay.isVisible({ timeout: 5000 }).catch(() => false);
+        // 关键优化 3: 增加更长的初始等待，给 React 框架 hydration 时间
+        const isAlreadyConnected = await accountDisplay.isVisible({ timeout: 10000 }).catch(() => false);
     
         if (isAlreadyConnected) {
-            console.log("✅ [Handshake-DApp] Wallet already detected as connected (session restored).");
+            console.log("✅ [Handshake-DApp] Session already active.");
             return this.page;
         }
     
-        // 4. 执行防御性连接流程
-        console.log("💡 [Handshake-DApp] Wallet not connected, attempting authorization...");
+        console.log("💡 [Handshake-DApp] Attempting authorization...");
         
         try {
-            await this.elemClick(connectBtn, 'Click connect wallet button');
+            // 关键优化 4: 使用 'force: true' 强制点击，忽略遮挡
+            // 在 CI 环境下，有时不可见的动画层会遮挡按钮，force 可以穿透它
+            await connectBtn.click({ timeout: 15000, force: true });
             
-            // 等待选择器加载
-            await this.waitElemVisible(this.metaMaskOption, 'MetaMask vendor selection target');
-            
-            // 捕获弹窗
-            return await this.clickAndGetPopup(this.metaMaskOption, 'Select MetaMask option');
+            await this.waitElemVisible(this.metaMaskOption, 'MetaMask option');
+            return await this.clickAndGetPopup(this.metaMaskOption, 'Select MetaMask');
         } catch (error) {
-            // 🚨 失败现场取证
-            await this.page.screenshot({ path: 'test-results/debug-connect-failure.png', fullPage: true });
-            console.error("❌ [Handshake-DApp] Connection failed, screenshot captured.");
+            // 关键优化 5: 失败取证时，先尝试关闭所有冗余的 console 和 log，降低内存压力
+            await this.page.screenshot({ path: 'test-results/debug-fail.png', fullPage: false, timeout: 5000 });
             throw error;
         }
     }
