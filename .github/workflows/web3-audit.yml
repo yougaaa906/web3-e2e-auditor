@@ -28,16 +28,20 @@ jobs:
       run: npx playwright install --with-deps chromium
 
     - name: 🛡️ Execute Web3 Audit Pipeline
-   
       run: |
-        xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" \
-        bash -c "export DBUS_SESSION_BUS_ADDRESS=$(dbus-daemon --session --fork --print-address) && npx playwright test"
+        # 1. 物理清理：彻底移除残留状态，防止文件锁导致初始化失败
+        rm -rf playwright/.auth/
+        mkdir -p playwright/.auth/
+        
+        # 2. 执行审计：通过指定 project=chromium-tests，自动按顺序触发 setup -> tests
+        # 增加 -ac +extension GLX +render -noreset 参数，修复 Linux 环境下的图形崩溃问题
+        xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24 -ac +extension GLX +render -noreset" \
+        npx playwright test --project=chromium-tests
       env:
         MNEMONIC: ${{ secrets.MNEMONIC }}
         WALLET_PASSWORD: ${{ secrets.WALLET_PASSWORD }}
         BASE_URL: "https://app.uniswap.org/"
- 
-        CI: "true" 
+        CI: "true"
 
     - name: 📸 Archive Forensic Artifacts
       if: always()
