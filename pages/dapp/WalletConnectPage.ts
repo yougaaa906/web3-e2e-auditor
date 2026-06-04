@@ -49,39 +49,46 @@ export class WalletConnectPage extends BasePage {
      * @returns {Promise<Page>} The intercepted external extension page notification handle.
      */
    async connectToMetaMask(): Promise<Page> {
-        console.log("🚀 [Handshake] Navigating to DApp...");
         await this.page.goto(process.env.BASE_URL || 'https://app.uniswap.org');
         
-        // 强制刷新：这是你本地经验的“稳定器”，确保 Web3 Provider 被注入
-        await this.page.reload({ waitUntil: 'domcontentloaded' });
-        
-        // 1. 验证 Provider 是否就绪
-        const isProviderReady = await this.page.evaluate(() => typeof window.ethereum !== 'undefined');
-        if (!isProviderReady) {
-            throw new Error("❌ FATAL: window.ethereum not found. MetaMask extension failed to inject.");
-        }
-        console.log("✅ [Handshake] Web3 Provider injected.");
+        // 强制检查 Provider 状态
+        const providerStatus = await this.page.evaluate(() => {
+            return {
+                hasEthereum: typeof window.ethereum !== 'undefined',
+                isMetaMask: !!(window.ethereum && window.ethereum.isMetaMask)
+            };
+        });
+        console.log("🔍 [Handshake] Provider Status:", providerStatus);
     
-        // 2. 检测并点击连接按钮
+        if (!providerStatus.hasEthereum) {
+            throw new Error("❌ FATAL: MetaMask Provider not injected in DApp context!");
+        }
+    
+        // 监听所有页面请求，看点击后有没有触发连接请求
+        this.page.on('request', request => {
+            if (request.url().includes('wallet_requestPermissions')) {
+                console.log("✅ [Handshake] Detected Web3 Connection Request!");
+            }
+        });
+    
+        console.log("🚀 [Handshake] Clicking connect button...");
         const connectBtn = this.page.getByTestId('navbar-connect-wallet');
         await connectBtn.click({ force: true });
     
-        // 3. 放弃 waitForEvent，直接查找弹窗
-        console.log("🔎 [Handshake] Searching for MetaMask popup...");
-        const maxRetries = 20; 
+        // 弹窗捕获逻辑
+        const maxRetries = 15;
         for (let i = 0; i < maxRetries; i++) {
             const pages = this.page.context().pages();
-            // 关键：寻找 MetaMask 的 notification 页面
             const mmPage = pages.find(p => p.url().includes('notification') || p.url().includes('popup'));
-            
             if (mmPage) {
-                console.log("🎉 [Handshake] MetaMask popup found!");
+                console.log("🎉 [Handshake] Pop-up detected!");
                 return mmPage;
             }
-            await this.page.waitForTimeout(1000); // 每一秒检查一次
+            await this.page.waitForTimeout(1000);
         }
-
-        throw new Error("❌ FATAL: MetaMask popup did not appear after 20 seconds.");
+    
+        // 如果运行到这里，说明点击了但什么都没发生
+        throw new Error("❌ FATAL: Button clicked, but NO Web3 connection request detected. Possible UI handler error.");
     }
     /**
      * Asserts runtime connection persistence thresholds and extracts validated address hashes.
