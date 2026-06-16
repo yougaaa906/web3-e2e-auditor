@@ -74,7 +74,7 @@ MetaMask LevelDB caches often trigger read-write lock conflicts during concurren
 ## 📊 Test Execution Dashboard
 The following dashboard represents a successful audit matrix run against the Uniswap V3 integration. It validates critical security guardrails, including duplicate transmission prevention, pending session anomaly handling, and end-to-end on-chain reconciliation.
 
-![Test Execution Summary]
+[Test Execution Summary]
 <img width="1402" height="871" alt="image" src="https://github.com/user-attachments/assets/75fb860e-9e47-447d-8097-a007c1bb5544" />
 
 *(Note: Each test case is designed as an atomic security audit point, ensuring zero regression risk for high-frequency transaction flows.)*
